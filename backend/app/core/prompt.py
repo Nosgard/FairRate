@@ -27,3 +27,23 @@ class PromptBuilder:
     @property
     def system_prompt(self) -> str:
         return self._system_prompt
+
+    def build_user_message(self, request: ReviewInput) -> str:
+        """Render the request as data, clearly fenced off from instructions"""
+        fields = [
+            f"Venue: {request.venue_name}",
+            f"Category: {request.category.value}",
+            f"Language: {request.language.value}",
+            f"Tone: {request.tone.value}",
+        ]
+        if request.visit_date:
+            fields.append(f"Visit date: {request.visit_date.isoformat()}")
+        if request.liked:
+            fields.append(f"Liked: {request.liked}")
+        if request.disliked:
+            fields.append(f"Disliked: {request.disliked}")
+        if request.suggestions:
+            fields.append(f"Suggestions: {request.suggestions}")
+
+        body = "\n".join(fields)
+        return f"<user_input>\n{body}\n</user_input>"
