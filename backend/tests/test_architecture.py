@@ -58,8 +58,11 @@ def test_core_does_not_import_adapters() -> None:
                 for alias in node.names:
                     if alias.name.startswith(outward_prefixes):
                         violations.append(f"{path.name}: {alias.name}")
-            elif isinstance(node, ast.ImportFrom) and node.module:
-                if node.module.startswith(outward_prefixes):
-                    violations.append(f"{path.name}: {node.module}")
+            elif (
+                isinstance(node, ast.ImportFrom)
+                and node.module
+                and node.module.startswith(outward_prefixes)
+            ):
+                violations.append(f"{path.name}: {node.module}")
 
     assert not violations, "Core imports outward: " + "; ".join(violations)
