@@ -29,11 +29,11 @@ class FakeGenerator:
 
         parts: list[str] = []
         if request.liked:
-            parts.append(f"What stood out: {request.liked}")
+            parts.append(f"What stood out: {request.liked}.")
         if request.disliked:
-            parts.append(f"Less convincing: {request.disliked}")
+            parts.append(f"Less convincing: {request.disliked}.")
         if request.suggestions:
-            parts.append(f"One suggestion: {request.suggestions}")
+            parts.append(f"One suggestion: {request.suggestions}.")
 
         review = " ".join(parts).ljust(40)
 
