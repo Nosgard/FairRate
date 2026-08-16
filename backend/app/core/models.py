@@ -98,3 +98,12 @@ class GeneratedReview(BaseModel):
     headline: Annotated[str, Field(max_length=80)] | None = None
     suggested_rating: Annotated[int, Field(ge=1, le=5)]
     omissions: list[Omission] = []
+
+
+class LlmReviewOutput(BaseModel):
+    """Raw structure returned by the language model. Parsed and validated here"""
+
+    review: Annotated[str, Field(min_length=40, max_length=3000)]
+    headline: Annotated[str, Field(max_length=80)] | None = None
+    suggested_rating: Annotated[int, Field(ge=1, le=5)]
+    omissions: list[Omission] = []
