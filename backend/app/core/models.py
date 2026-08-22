@@ -10,6 +10,14 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+class GeneratorKind(StrEnum):
+    """Which generator implementation to use at runtime"""
+
+    FAKE = "fake"
+    OLLAMA = "ollama"
+    ANTHROPIC = "anthropic"
+
+
 class VenueCategory(StrEnum):
     """Type of venue being reviewed. Influences wording in the prompt"""
 
