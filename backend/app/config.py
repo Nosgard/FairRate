@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     )
 
     generator: GeneratorKind = GeneratorKind.FAKE
-    prompt_version: str = "v1"
+    prompt_version: str = "v2"
 
     # Anthropic
     anthropic_api_key: str = ""
