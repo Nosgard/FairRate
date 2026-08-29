@@ -19,7 +19,7 @@ register_exception_handlers(app)
 app.include_router(reviews_router)
 
 
-@app.get("/health", tags=["meta"])
+@app.get("/api/health", tags=["meta"])
 async def health() -> dict[str, str]:
     """Liveness check. No dependencies, no side effects — safe for hosting
     platforms to poll without triggering generation or costing anything."""
