@@ -1,4 +1,4 @@
-"""Wiring. The only place that decides which generator implementation is used"""
+"""Wiring. The only place that decides which generator implementation is used."""
 
 from __future__ import annotations
 
@@ -19,9 +19,16 @@ SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 
 def get_generator(settings: SettingsDep) -> ReviewGenerator:
-    """Pick the generator based on configuration"""
+    """Pick the generator based on configuration.
+
+    This function is dependency inversion made concrete: everything
+    downstream depends on ReviewGenerator, never on a specific adapter.
+    Swapping the default, adding a new provider, or running Fake in
+    one environment and Anthropic in another is a change in one place."""
     prompts = PromptBuilder(version=settings.prompt_version)
 
+    # match, not if/elif: adding a GeneratorKind member without a
+    # matching case here is a type error, not a silent None return.
     match settings.generator:
         case GeneratorKind.FAKE:
             return FakeGenerator()

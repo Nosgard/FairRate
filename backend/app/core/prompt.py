@@ -1,4 +1,4 @@
-"""Builds the prompt sent to the language model. Owns the fairness rules"""
+"""Builds the prompt sent to the language model. Owns the fairness rules."""
 
 from __future__ import annotations
 
@@ -6,12 +6,15 @@ from pathlib import Path
 
 from app.core.models import ReviewInput
 
+# Resolved relative to this file, not the working directory — the app is
+# started from different locations (test, uvicorn, CI), and a relative
+# string path would break depending on where that happens to be.
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 DEFAULT_VERSION = "v1"
 
 
 class PromptBuilder:
-    """Loads a versioned system prompt and renders the user payload"""
+    """Loads a versioned system prompt and renders the user payload."""
 
     def __init__(self, version: str = DEFAULT_VERSION) -> None:
         self.version = version
@@ -29,7 +32,7 @@ class PromptBuilder:
         return self._system_prompt
 
     def build_user_message(self, request: ReviewInput) -> str:
-        """Render the request as data, clearly fenced off from instructions"""
+        """Render the request as data, clearly fenced off from instructions."""
         fields = [
             f"Venue: {request.venue_name}",
             f"Category: {request.category.value}",
@@ -46,4 +49,8 @@ class PromptBuilder:
             fields.append(f"Suggestions: {request.suggestions}")
 
         body = "\n".join(fields)
+        # Everything the user wrote lives inside these tags. The system
+        # prompt instructs the model to treat their contents as data to
+        # review, never as instructions to follow — this is the prompt
+        # injection defence, not a filter list that could be bypassed.
         return f"<user_input>\n{body}\n</user_input>"

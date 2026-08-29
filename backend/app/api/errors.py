@@ -1,4 +1,4 @@
-"""Central mapping from domain exceptions to HTTP responses"""
+"""Central mapping from domain exceptions to HTTP responses."""
 
 from __future__ import annotations
 
@@ -19,12 +19,19 @@ def _error(status_code: int, code: str, message: str) -> JSONResponse:
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    """Attach domain error handlers to the application"""
+    """Attach domain error handlers to the application.
+
+    Centralised here rather than per-route: routes never write try/except
+    for these — raising a domain exception is enough, and the mapping to
+    HTTP status and message lives in exactly one place."""
 
     @app.exception_handler(LlmUnavailableError)
     async def _handle_unavailable(
         request: Request, exc: LlmUnavailableError
     ) -> JSONResponse:
+        # exc is intentionally not included in the response body. It may
+        # contain provider details (status codes, hostnames) that belong
+        # in logs, not in what a client of this API can see.
         return _error(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "llm_unavailable",
@@ -45,6 +52,8 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def _handle_rejected(
         request: Request, exc: ContentRejectedError
     ) -> JSONResponse:
+        # No adapter raises this yet — see exceptions.py. The handler
+        # exists so the mapping is ready when a rule needs it.
         return _error(
             status.HTTP_422_UNPROCESSABLE_ENTITY,
             "content_rejected",

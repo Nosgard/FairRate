@@ -13,11 +13,13 @@ from app.core.exceptions import InvalidLlmOutputError, LlmUnavailableError
 from app.core.models import GeneratedReview, LlmReviewOutput, ReviewInput
 from app.core.prompt import PromptBuilder
 
+# Local models on CPU hardware can take 30-90 seconds for one review.
+# httpx's default timeout (5s) would abort almost every real request.
 TIMEOUT_SECONDS = 120.0
 
 
 class OllamaGenerator:
-    """Implements ReviewGenerator by calling a local Ollama server"""
+    """Implements ReviewGenerator by calling a local Ollama server."""
 
     def __init__(
         self,
@@ -35,6 +37,9 @@ class OllamaGenerator:
             "model": self._model,
             "system": self._prompts.system_prompt,
             "prompt": self._prompts.build_user_message(request),
+            # Forces syntactically valid JSON at the Ollama level — the
+            # main defence against smaller models producing malformed
+            # output. Anthropic's API has no equivalent for this.
             "format": "json",
             "stream": False,
         }
@@ -60,6 +65,9 @@ class OllamaGenerator:
         except ValueError as exc:
             raise InvalidLlmOutputError("Ollama returned a malformed envelope") from exc
 
+        # Ollama wraps the model's output in an envelope; the actual
+        # payload is a JSON *string* inside "response", not inline JSON.
+        # This is the layer AnthropicGenerator doesn't need.
         text = envelope.get("response", "")
         if not text:
             raise InvalidLlmOutputError("Ollama returned not content")
@@ -68,7 +76,7 @@ class OllamaGenerator:
 
     @staticmethod
     def _parse(raw: str) -> LlmReviewOutput:
-        """Turn the inner JSON string into a validated LlmReviewOutput"""
+        """Turn the inner JSON string into a validated LlmReviewOutput."""
         text = raw.strip()
 
         if text.startswith("```"):
@@ -88,7 +96,7 @@ class OllamaGenerator:
             ) from exc
 
     async def generate(self, request: ReviewInput) -> GeneratedReview:
-        """Implements the ReviewGenerator port"""
+        """Implements the ReviewGenerator port."""
         raw = await self._call_model(request)
         parsed = self._parse(raw)
 

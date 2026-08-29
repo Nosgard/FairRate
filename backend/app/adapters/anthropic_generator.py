@@ -1,4 +1,4 @@
-"""Adapter for the Anthropic API. Translates provider errors into domain errors"""
+"""Adapter for the Anthropic API. Translates provider errors into domain errors."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ MAX_TOKENS = 1024
 
 
 class AnthropicGenerator:
-    """Implements ReviewGenerator by calling the Anthropic messages API"""
+    """Implements ReviewGenerator by calling the Anthropic messages API."""
 
     def __init__(
         self,
@@ -25,6 +25,9 @@ class AnthropicGenerator:
         model: str,
         prompt_builder: PromptBuilder | None = None,
     ) -> None:
+        # Checked here, not left to fail on first use: with an empty key
+        # the config default would otherwise surface as a cryptic API
+        # error on the first request instead of at startup.
         if not api_key:
             raise ValueError("An API key is required to use AnthropicGenerator.")
 
@@ -33,7 +36,7 @@ class AnthropicGenerator:
         self._prompts = prompt_builder or PromptBuilder()
 
     async def _call_model(self, request: ReviewInput) -> str:
-        """Send the prompt and return the raw text response"""
+        """Send the prompt and return the raw text response."""
         try:
             response = await self._client.messages.create(
                 model=self._model,
@@ -47,6 +50,9 @@ class AnthropicGenerator:
                 ],
             )
         except anthropic.APIStatusError as exc:
+            # This is where SDK-specific exceptions stop existing for the
+            # rest of the app. The service and API layer never see
+            # anthropic.* — only the domain exceptions below.
             raise LlmUnavailableError(
                 f"Anthropic API returned status {exc.status_code}"
             ) from exc
@@ -61,10 +67,11 @@ class AnthropicGenerator:
 
     @staticmethod
     def _parse(raw: str) -> LlmReviewOutput:
-        """Turn the raw text into a validated LlmReviewOutput"""
+        """Turn the raw text into a validated LlmReviewOutput."""
         text = raw.strip()
 
-        # The prompt forbids code fences, but models occasionally add them anyway
+        # The prompt forbids code fences, but models occasionally add them
+        # anyway — stripping them here is cheaper than a failed request.
         if text.startswith("```"):
             text = text.removeprefix("```json").removeprefix("```")
             text = text.removesuffix("```").strip()
@@ -77,15 +84,22 @@ class AnthropicGenerator:
         try:
             return LlmReviewOutput.model_validate(payload)
         except ValidationError as exc:
+            # Distinct from the JSONDecodeError above: this is syntactically
+            # valid JSON that doesn't match the expected shape. Same
+            # exception type, different log message, useful when debugging
+            # a prompt that returns the wrong fields.
             raise InvalidLlmOutputError(
                 "Model returned JSON that does not match the expected shape"
             ) from exc
 
     async def generate(self, request: ReviewInput) -> GeneratedReview:
-        """Implements the ReviewGenerator port"""
+        """Implements the ReviewGenerator port."""
         raw = await self._call_model(request)
         parsed = self._parse(raw)
 
+        # id, created_at, venue_name and category never come from the
+        # model — they're set here from the request. This is why
+        # LlmReviewOutput and GeneratedReview are separate models.
         return GeneratedReview(
             id=uuid4(),
             created_at=datetime.now(UTC),

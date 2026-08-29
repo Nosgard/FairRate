@@ -18,6 +18,8 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # Defaults to FAKE so the project runs immediately after cloning,
+    # with no API key and no external dependency required.
     generator: GeneratorKind = GeneratorKind.FAKE
     prompt_version: str = "v2"
 
@@ -32,5 +34,6 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    """Cached accessor so the .env file is read only once"""
+    """Cached accessor so the .env file is read only once per process,
+    not on every request."""
     return Settings()

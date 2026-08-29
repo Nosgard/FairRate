@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class GeneratorKind(StrEnum):
-    """Which generator implementation to use at runtime"""
+    """Which generator implementation to use at runtime."""
 
     FAKE = "fake"
     OLLAMA = "ollama"
@@ -19,7 +19,7 @@ class GeneratorKind(StrEnum):
 
 
 class VenueCategory(StrEnum):
-    """Type of venue being reviewed. Influences wording in the prompt"""
+    """Type of venue being reviewed. Influences wording in the prompt."""
 
     RESTAURANT = "restaurant"
     CAFE = "cafe"
@@ -34,7 +34,7 @@ class VenueCategory(StrEnum):
 
 
 class Tone(StrEnum):
-    """Requested tone of the generated review"""
+    """Requested tone of the generated review."""
 
     NEUTRAL = "neutral"
     FRIENDLY = "friendly"
@@ -47,7 +47,7 @@ class Language(StrEnum):
 
 
 class OmissionType(StrEnum):
-    """Reason why part of the user input was not carried over"""
+    """Reason why part of the user input was not carried over."""
 
     INSULT = "insult"
     PERSONAL_ATTACK = "personal_attack"
@@ -57,7 +57,7 @@ class OmissionType(StrEnum):
 
 
 class ReviewInput(BaseModel):
-    """Validated form input. The only entry point for user data"""
+    """Validated form input. The only entry point for user data."""
 
     venue_name: Annotated[str, Field(min_length=2, max_length=120)]
     category: VenueCategory = VenueCategory.OTHER
@@ -77,6 +77,8 @@ class ReviewInput(BaseModel):
 
     @model_validator(mode="after")
     def require_content(self) -> ReviewInput:
+        # At least one of liked/disliked must carry content, or there is
+        # nothing to review — checked here, not left to the LLM to notice.
         if not (self.liked or self.disliked):
             raise ValueError("Please tell at least what you liked or what you didn't")
         return self
@@ -89,14 +91,14 @@ class ReviewInput(BaseModel):
 
 
 class Omission(BaseModel):
-    """A part of the input that was deliberately left out"""
+    """A part of the input that was deliberately left out."""
 
     type: OmissionType
     note: Annotated[str, Field(max_length=200)]
 
 
 class GeneratedReview(BaseModel):
-    """The core result. Enriched with metadata at the API layer"""
+    """The core result. Enriched with metadata at the API layer."""
 
     id: UUID
     created_at: datetime
@@ -109,7 +111,10 @@ class GeneratedReview(BaseModel):
 
 
 class LlmReviewOutput(BaseModel):
-    """Raw structure returned by the language model. Parsed and validated here"""
+    """Raw structure returned by the language model. Parsed and validated here.
+
+    Deliberately separate from GeneratedReview: this model can change when
+    the prompt changes, without breaking the public API contract."""
 
     review: Annotated[str, Field(min_length=40, max_length=3000)]
     headline: Annotated[str, Field(max_length=80)] | None = None

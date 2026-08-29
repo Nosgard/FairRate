@@ -1,4 +1,4 @@
-"""HTTP route for review generation. Thin by design: validate, delegate, map"""
+"""HTTP route for review generation. Thin by design: validate, delegate, map."""
 
 from __future__ import annotations
 
@@ -12,13 +12,21 @@ router = APIRouter(prefix="/api", tags=["reviews"])
 
 
 def _to_domain(payload: ReviewRequestSchema) -> ReviewInput:
-    """Translate the HTTP shape into the domain shape"""
+    """Translate the HTTP shape into the domain shape.
+
+    The cost of keeping ReviewRequestSchema and ReviewInput separate:
+    every field gets copied across explicitly here. In exchange, a field
+    added to the form never has to touch the domain model unasked, and
+    a domain change never breaks the API contracts silently."""
     return ReviewInput(
         venue_name=payload.venue_name,
         category=payload.category,
         liked=payload.liked,
         disliked=payload.disliked,
         suggestions=payload.suggestions,
+        # ToneSchema and Tone hold the same values under different types;
+        # .value crosses that boundary explicitly rather than relying on
+        # StrEnum's implicit string compatibility.
         tone=Tone(payload.tone.value),
         language=Language(payload.language.value),
         visit_date=payload.visit_date,
@@ -35,6 +43,8 @@ async def create_review(
     payload: ReviewRequestSchema,
     service: ReviewServiceDep,
 ) -> ReviewResponseSchema:
+    # No try/except here: if the service raises, the handlers registered
+    # in error.py catch it. The route's only job is HTTP in, HTTP out.
     result = await service.create_review(_to_domain(payload))
 
     return ReviewResponseSchema(
