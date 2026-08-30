@@ -38,6 +38,7 @@ class PromptBuilder:
             f"Category: {request.category.value}",
             f"Language: {request.language.value}",
             f"Tone: {request.tone.value}",
+            f"Perspective: {request.perspective.value}",
         ]
         if request.visit_date:
             fields.append(f"Visit date: {request.visit_date.isoformat()}")

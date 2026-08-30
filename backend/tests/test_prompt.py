@@ -17,3 +17,14 @@ def test_loads_default_system_prompt() -> None:
 def test_raises_on_unknown_version() -> None:
     with pytest.raises(FileNotFoundError):
         PromptBuilder(version="does-not-exist")
+
+
+def test_includes_perspective() -> None:
+    from app.core.models import Perspective, ReviewInput
+
+    builder = PromptBuilder()
+    message = builder.build_user_message(
+        ReviewInput(venue_name="Some Place", liked="good", perspective=Perspective.WE)
+    )
+
+    assert "Perspective: we" in message
