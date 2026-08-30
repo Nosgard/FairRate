@@ -19,6 +19,8 @@ export const VENUE_CATEGORIES = [
 
 export const TONES = ["neutral", "friendly", "concise"] as const;
 
+export const PERSPECTIVES = ["impersonal", "i", "we"] as const;
+
 export const reviewFormSchema = z
   .object({
     venue_name: z
@@ -31,6 +33,7 @@ export const reviewFormSchema = z
     disliked: z.string().trim().max(2000, "That is a bit too long."),
     suggestions: z.string().trim().max(1000, "That is a bit too long."),
     tone: z.enum(TONES),
+    perspective: z.enum(PERSPECTIVES),
   })
   // Mirrors require_content in the backend: without either field there is
   // nothing to review. Attached to `liked` so the message appears at a

@@ -10,6 +10,7 @@ export type Omission = components["schemas"]["Omission"];
 export type OmissionType = components["schemas"]["OmissionType"];
 export type VenueCategory = components["schemas"]["VenueCategory"];
 export type Tone = components["schemas"]["ToneSchema"];
+export type Perspective = components["schemas"]["PerspectiveSchema"];
 export type Language = components["schemas"]["LanguageSchema"];
 
 /** Explicit union for the four UI states from the UI concept.

@@ -5,7 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { TONES, VENUE_CATEGORIES, reviewFormSchema } from "../lib/schema";
+import {
+  TONES,
+  PERSPECTIVES,
+  VENUE_CATEGORIES,
+  reviewFormSchema,
+} from "../lib/schema";
 import type { ReviewFormValues } from "../lib/schema";
 
 interface ReviewFormProps {
@@ -26,6 +31,12 @@ const CATEGORY_LABELS: Record<(typeof VENUE_CATEGORIES)[number], string> = {
   other: "Other",
 };
 
+const PERSPECTIVE_LABELS: Record<(typeof PERSPECTIVES)[number], string> = {
+  impersonal: "No first person",
+  i: "I",
+  we: "We",
+};
+
 export function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
   const {
     register,
@@ -40,6 +51,7 @@ export function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
       disliked: "",
       suggestions: "",
       tone: "neutral",
+      perspective: "impersonal",
     },
   });
 
@@ -148,6 +160,28 @@ export function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
             {...register("suggestions")}
           />
         )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-neutral-800">
+          Point of view
+        </label>
+        <div className="mt-1.5 grid grid-cols-3 gap-2">
+          {PERSPECTIVES.map((value) => (
+            <label
+              key={value}
+              className="flex cursor-pointer items-center justify-center rounded-lg border border-neutral-300 px-2 py-2.5 text-center text-sm has-[:checked]:border-neutral-900 has-[:checked]:bg-neutral-900 has-[:checked]:text-white"
+            >
+              <input
+                type="radio"
+                value={value}
+                className="sr-only"
+                {...register("perspective")}
+              />
+              {PERSPECTIVE_LABELS[value]}
+            </label>
+          ))}
+        </div>
       </div>
 
       <div>

@@ -51,6 +51,7 @@ export default function App() {
       disliked: values.disliked,
       suggestions: values.suggestions,
       tone: values.tone,
+      perspective: values.perspective,
       language: "en",
     });
   }

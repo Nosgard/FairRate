@@ -72,6 +72,11 @@ export interface components {
          */
         OmissionType: "insult" | "personal_attack" | "unverifiable_claim" | "off_topic" | "instruction_attempt";
         /**
+         * PerspectiveSchema
+         * @enum {string}
+         */
+        PerspectiveSchema: "impersonal" | "i" | "we";
+        /**
          * ReviewRequestSchema
          * @description What the frontend sends.
          */
@@ -97,6 +102,8 @@ export interface components {
             suggestions: string;
             /** @default neutral */
             tone: components["schemas"]["ToneSchema"];
+            /** @default impersonal */
+            perspective: components["schemas"]["PerspectiveSchema"];
             /** @default en */
             language: components["schemas"]["LanguageSchema"];
             /** Visit Date */
