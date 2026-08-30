@@ -58,7 +58,7 @@ export function ErrorState({
           <button
             type="button"
             onClick={onRetry}
-            className="mt-4 w-full rounded-lg bg-neutral-900 px-4 py-3 text-base font-medium text-white"
+            className="mt-4 w-full cursor-pointer rounded-lg bg-neutral-900 px-4 py-3 text-base font-medium text-white"
           >
             Try again
           </button>

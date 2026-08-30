@@ -53,7 +53,7 @@ export function CopyButton({ text }: CopyButtonProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className="flex-1 rounded-lg bg-neutral-900 px-4 py-3 text-base font-medium text-white"
+      className="flex-1 cursor-pointer rounded-lg bg-neutral-900 px-4 py-3 text-base font-medium text-white"
     >
       {copied ? "Copied" : "Copy"}
     </button>

@@ -134,7 +134,7 @@ export function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
         <button
           type="button"
           onClick={() => setShowSuggestions((v) => !v)}
-          className="text-sm text-neutral-600"
+          className="cursor-pointer text-sm text-neutral-600"
         >
           {showSuggestions ? "Hide" : "Add"} a suggestion for improvement{" "}
           <span className="text-neutral-400">(optional)</span>
@@ -175,7 +175,7 @@ export function ReviewForm({ onSubmit, isLoading }: ReviewFormProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full rounded-lg bg-neutral-900 px-4 py-3 text-base font-medium text-white disabled:opacity-50"
+        className="w-full cursor-pointer rounded-lg bg-neutral-900 px-4 py-3 text-base font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading ? "Writing your review…" : "Create review"}
       </button>

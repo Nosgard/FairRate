@@ -55,7 +55,7 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
           onClick={onRegenerate}
           aria-label="Generate again"
           title="Generate again"
-          className="w-12 rounded-lg border border-neutral-300 text-neutral-600"
+          className="w-12 cursor-pointer rounded-lg border border-neutral-300 text-neutral-600"
         >
           ↻
         </button>
