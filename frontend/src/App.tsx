@@ -2,6 +2,39 @@ import { ReviewForm } from "./components/ReviewForm";
 import { ReviewResult } from "./components/ReviewResult";
 import { useReviewGeneration } from "./hooks/useReviewGeneration";
 import type { ReviewFormValues } from "./lib/schema";
+import { EmptyState } from "./components/EmptyState";
+import { ErrorState } from "./components/ErrorState";
+import { LoadingState } from "./components/LoadingState";
+import type { GenerationState } from "./lib/types";
+
+/** Renders whichever state the generation is currently in. Written as an
+ *  exhaustive switch so a new state cannot be added without handling it
+ *  here — the compiler flags the missing case. */
+function ResultPanel({
+  state,
+  onRetry,
+}: {
+  state: GenerationState;
+  onRetry: () => void;
+}) {
+  switch (state.status) {
+    case "idle":
+      return <EmptyState />;
+    case "loading":
+      return <LoadingState />;
+    case "success":
+      return <ReviewResult review={state.review} onRegenerate={onRetry} />;
+    case "error":
+      return (
+        <ErrorState
+          code={state.code}
+          message={state.message}
+          retryAfterSeconds={state.retryAfterSeconds}
+          onRetry={onRetry}
+        />
+      );
+  }
+}
 
 export default function App() {
   const { state, generate, regenerate } = useReviewGeneration();
@@ -37,15 +70,9 @@ export default function App() {
           />
         </div>
 
-        {state.status === "success" && (
-          <div className="mt-6">
-            <ReviewResult review={state.review} onRegenerate={regenerate} />
-          </div>
-        )}
-
-        {state.status === "error" && (
-          <p className="mt-6 text-sm text-red-700">{state.message}</p>
-        )}
+        <div className="mt-6">
+          <ResultPanel state={state} onRetry={regenerate} />
+        </div>
       </div>
     </main>
   );
