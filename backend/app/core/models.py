@@ -41,6 +41,18 @@ class Tone(StrEnum):
     CONCISE = "concise"
 
 
+class Perspective(StrEnum):
+    """Whose voice the review is written in.
+
+    Controls only how the reviewer's own experience is phrased. People the
+    user mentioned — a partner, a friend, a child — always stay, in every
+    setting."""
+
+    IMPERSONAL = "impersonal"
+    FIRST_PERSON = "i"
+    WE = "we"
+
+
 class Language(StrEnum):
     DE = "de"
     EN = "en"
@@ -67,6 +79,7 @@ class ReviewInput(BaseModel):
     suggestions: Annotated[str, Field(default="", max_length=1000)]
 
     tone: Tone = Tone.NEUTRAL
+    perspective: Perspective = Perspective.IMPERSONAL
     language: Language = Language.EN
     visit_date: date | None = None
 
