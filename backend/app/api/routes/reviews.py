@@ -6,7 +6,7 @@ from fastapi import APIRouter, status
 
 from app.api.dependencies import ReviewServiceDep
 from app.api.schemas import ReviewRequestSchema, ReviewResponseSchema
-from app.core.models import Language, ReviewInput, Tone
+from app.core.models import Language, Perspective, ReviewInput, Tone
 
 router = APIRouter(prefix="/api", tags=["reviews"])
 
@@ -28,6 +28,7 @@ def _to_domain(payload: ReviewRequestSchema) -> ReviewInput:
         # .value crosses that boundary explicitly rather than relying on
         # StrEnum's implicit string compatibility.
         tone=Tone(payload.tone.value),
+        perspective=Perspective(payload.perspective.value),
         language=Language(payload.language.value),
         visit_date=payload.visit_date,
     )

@@ -23,6 +23,12 @@ class ToneSchema(StrEnum):
     CONCISE = "concise"
 
 
+class PerspectiveSchema(StrEnum):
+    IMPERSONAL = "impersonal"
+    FIRST_PERSON = "i"
+    WE = "we"
+
+
 class LanguageSchema(StrEnum):
     DE = "de"
     EN = "en"
@@ -40,6 +46,7 @@ class ReviewRequestSchema(BaseModel):
     disliked: Annotated[str, Field(default="", max_length=2000)]
     suggestions: Annotated[str, Field(default="", max_length=1000)]
     tone: ToneSchema = ToneSchema.NEUTRAL
+    perspective: PerspectiveSchema = PerspectiveSchema.IMPERSONAL
     language: LanguageSchema = LanguageSchema.EN
     visit_date: date | None = None
 
