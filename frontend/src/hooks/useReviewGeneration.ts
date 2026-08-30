@@ -16,6 +16,7 @@ export function useReviewGeneration() {
   const lastRequest = useRef<ReviewRequest | null>(null);
 
   const generate = useCallback(async (request: ReviewRequest) => {
+    lastRequest.current = request;
     setState({ status: "loading" });
     // createReview never throws — it returns a GenerationState either way,
     // so there is no error branch to forget here.
