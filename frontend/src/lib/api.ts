@@ -4,6 +4,13 @@
  */
 
 import type { GenerationState, ReviewRequest, ReviewResponse } from "./types";
+import { mockReview } from "./mockData";
+
+/** Set VITE_USE_MOCK=true in frontend/.env.local to work on the UI
+ *  without a backend. Vite only exposes variables prefixed with VITE_. */
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+
+const MOCK_DELAY_MS = 1500;
 
 interface ApiErrorBody {
   code: string;
@@ -14,6 +21,13 @@ interface ApiErrorBody {
 export async function createReview(
   request: ReviewRequest,
 ): Promise<GenerationState> {
+  if (USE_MOCK) {
+    // Deliberately delayed: without it the loading state would flash by
+    // too quickly to actually look at while working on it.
+    await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
+    return { status: "success", review: mockReview(request) };
+  }
+
   try {
     const res = await fetch("/api/reviews", {
       method: "POST",
