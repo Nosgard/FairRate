@@ -1,9 +1,10 @@
 import { ReviewForm } from "./components/ReviewForm";
+import { ReviewResult } from "./components/ReviewResult";
 import { useReviewGeneration } from "./hooks/useReviewGeneration";
 import type { ReviewFormValues } from "./lib/schema";
 
 export default function App() {
-  const { state, generate } = useReviewGeneration();
+  const { state, generate, regenerate } = useReviewGeneration();
 
   /** Bridges form values to the API request shape. The two are close but
    *  not identical: `language` is fixed for now and never asked for in the
@@ -37,9 +38,9 @@ export default function App() {
         </div>
 
         {state.status === "success" && (
-          <pre className="mt-6 overflow-auto rounded-lg bg-white p-4 text-xs">
-            {JSON.stringify(state.review, null, 2)}
-          </pre>
+          <div className="mt-6">
+            <ReviewResult review={state.review} onRegenerate={regenerate} />
+          </div>
         )}
 
         {state.status === "error" && (
