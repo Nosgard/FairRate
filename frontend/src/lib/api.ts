@@ -27,7 +27,12 @@ export async function createReview(
     }
 
     const body = (await res.json()) as ApiErrorBody;
-    return { status: "error", code: body.code, message: body.message };
+    return {
+      status: "error",
+      code: body.code,
+      message: body.message,
+      retryAfterSeconds: body.retry_after_seconds ?? undefined,
+    };
   } catch {
     // Network failure, not an HTTP error status — the backend was
     // unreachable at all, not just unhappy with the request.
