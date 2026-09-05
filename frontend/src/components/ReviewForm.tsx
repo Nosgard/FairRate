@@ -213,7 +213,7 @@ export function ReviewForm({
               {PERSPECTIVES.map((value) => (
                 <label
                   key={value}
-                  className="flex cursor-pointer items-center justify-center rounded-lg border border-neutral-300 px-2 py-2.5 text-center text-sm has-[:checked]:border-neutral-900 has-[:checked]:bg-neutral-900 has-[:checked]:text-white"
+                  className="flex cursor-pointer items-center justify-center rounded-lg border border-neutral-300 px-2 py-2.5 text-center text-sm hover:border-neutral-400 has-[:checked]:border-neutral-900 has-[:checked]:bg-neutral-50 has-[:checked]:text-neutral-900 has-[:checked]:shadow-sm"
                 >
                   <input
                     type="radio"
@@ -235,7 +235,7 @@ export function ReviewForm({
               {TONES.map((value) => (
                 <label
                   key={value}
-                  className="flex cursor-pointer items-center justify-center rounded-lg border border-neutral-300 py-2.5 text-sm capitalize has-[:checked]:border-neutral-900 has-[:checked]:bg-neutral-900 has-[:checked]:text-white"
+                  className="flex cursor-pointer items-center justify-center rounded-lg border border-neutral-300 py-2.5 text-sm capitalize hover:border-neutral-400 has-[:checked]:border-neutral-900 has-[:checked]:bg-neutral-50 has-[:checked]:text-neutral-900 has-[:checked]:shadow-sm"
                 >
                   <input
                     type="radio"
@@ -257,7 +257,7 @@ export function ReviewForm({
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full cursor-pointer rounded-lg bg-neutral-900 px-4 py-3 text-base font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-4 py-3 text-base font-medium text-neutral-900 shadow-sm transition duration-150 ease-out hover:border-neutral-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm disabled:hover:border-neutral-300"
       >
         {isLoading ? "Writing your review…" : "Create review"}
       </button>
