@@ -257,8 +257,24 @@ export function ReviewForm({
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-4 py-3 text-base font-medium text-neutral-900 shadow-sm transition duration-150 ease-out hover:border-neutral-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm disabled:hover:border-neutral-300"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-3 text-base font-medium text-neutral-900 shadow-sm transition duration-150 ease-out hover:border-neutral-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm disabled:hover:border-neutral-300"
       >
+        {/* Decorative only — the label already names the action, so it is
+            hidden from screen readers. Drawn inline in currentColor rather
+            than as an emoji, which would bring its own colour into a button
+            the palette keeps neutral. Gone while loading: it promises an
+            action that is already under way. */}
+        {!isLoading && (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="h-5 w-5 shrink-0"
+          >
+            <path d="M9 5Q10.2 11.8 16 13Q10.2 14.2 9 21Q7.8 14.2 2 13Q7.8 11.8 9 5Z" />
+            <path d="M18 2Q18.6 4.4 21 5Q18.6 5.6 18 8Q17.4 5.6 15 5Q17.4 4.4 18 2Z" />
+          </svg>
+        )}
         {isLoading ? "Writing your review…" : "Create review"}
       </button>
     </form>
