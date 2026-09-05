@@ -4,7 +4,6 @@ import { ReviewForm } from "./components/ReviewForm";
 import { ReviewResult } from "./components/ReviewResult";
 import { useReviewGeneration } from "./hooks/useReviewGeneration";
 import type { ReviewFormValues } from "./lib/schema";
-import { EmptyState } from "./components/EmptyState";
 import { ErrorState } from "./components/ErrorState";
 import { LoadingState } from "./components/LoadingState";
 import type { GenerationState } from "./lib/types";
@@ -21,7 +20,7 @@ function ResultPanel({
 }) {
   switch (state.status) {
     case "idle":
-      return <EmptyState />;
+      return null;
     case "loading":
       return <LoadingState />;
     case "success":
@@ -100,9 +99,11 @@ export default function App() {
           />
         </div>
 
-        <div className="mt-6">
-          <ResultPanel state={state} onRetry={handleRegenerate} />
-        </div>
+        {state.status !== "idle" && (
+          <div className="mt-6">
+            <ResultPanel state={state} onRetry={handleRegenerate} />
+          </div>
+        )}
       </div>
     </main>
   );
