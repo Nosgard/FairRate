@@ -14,8 +14,30 @@
   animation: skeleton-pulse 1.4s ease-in-out infinite;
 }
 
+/* The collapsed summary replaces the form in place. Only opacity and a
+   small offset are animated, never height, so nothing has to measure
+   auto. */
+@keyframes summary-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.summary-in {
+  animation: summary-in 160ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton {
+    animation: none;
+  }
+
+  .summary-in {
     animation: none;
   }
 }
