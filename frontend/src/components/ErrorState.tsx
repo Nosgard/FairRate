@@ -36,11 +36,11 @@ export function ErrorState({
   const isRateLimited = code === ERROR_CODES.rateLimited;
 
   return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-5">
-      <p className="text-base font-medium text-neutral-900">
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5">
+      <p className="text-base font-medium text-slate-900">
         {isRateLimited ? "A short pause is needed" : "That didn't work"}
       </p>
-      <p className="mt-1.5 text-sm leading-relaxed text-neutral-600">
+      <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
         {message}
         {isRateLimited && remaining > 0 && ` Try again in ${remaining}s.`}
       </p>
@@ -58,11 +58,11 @@ export function ErrorState({
           <button
             type="button"
             onClick={onRetry}
-            className="mt-4 w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-4 py-3 text-base font-medium text-neutral-900 shadow-sm transition duration-150 ease-out hover:border-neutral-900 hover:shadow-md motion-safe:hover:-translate-y-0.5"
+            className="mt-4 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
           >
             Try again
           </button>
-          <p className="mt-3 text-center text-xs text-neutral-500">
+          <p className="mt-3 text-center text-xs text-slate-500">
             Error code: {code}
           </p>
         </>

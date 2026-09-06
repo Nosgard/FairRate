@@ -9,7 +9,7 @@ interface BarProps {
 function Bar({ width }: BarProps) {
   return (
     <div
-      className="skeleton h-2.5 rounded bg-neutral-400"
+      className="skeleton h-2.5 rounded bg-slate-400"
       style={{ width }}
       aria-hidden="true"
     />
@@ -19,11 +19,11 @@ function Bar({ width }: BarProps) {
 export function LoadingState() {
   return (
     <section
-      className="rounded-2xl border border-neutral-200 bg-white p-5"
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5"
       aria-busy="true"
       aria-live="polite"
     >
-      <p className="text-sm font-medium text-neutral-900">
+      <p className="text-sm font-medium text-slate-900">
         Writing your review…
       </p>
 
@@ -39,7 +39,7 @@ export function LoadingState() {
         <Bar width="88%" />
       </div>
 
-      <p className="mt-5 border-t border-neutral-200 pt-3.5 text-xs text-neutral-500">
+      <p className="mt-5 border-t border-slate-200 pt-3.5 text-xs text-slate-500">
         This usually takes a few seconds.
       </p>
     </section>

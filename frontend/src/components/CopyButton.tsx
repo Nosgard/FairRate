@@ -39,10 +39,10 @@ export function CopyButton({ text }: CopyButtonProps) {
           readOnly
           value={text}
           onFocus={(e) => e.currentTarget.select()}
-          className="w-full rounded-lg border border-neutral-300 p-2 text-sm"
+          className="w-full rounded-lg border border-slate-200 bg-white p-2 text-sm shadow-sm shadow-slate-900/5"
           rows={3}
         />
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-slate-500">
           Copying is unavailable here — select the text and press Ctrl+C.
         </p>
       </div>
@@ -53,7 +53,7 @@ export function CopyButton({ text }: CopyButtonProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className="flex-1 cursor-pointer rounded-lg border border-neutral-300 bg-white px-4 py-3 text-base font-medium text-neutral-900 shadow-sm transition duration-150 ease-out hover:border-neutral-900 hover:shadow-md motion-safe:hover:-translate-y-0.5"
+      className="flex-1 cursor-pointer rounded-lg border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
     >
       {copied ? "Copied" : "Copy"}
     </button>

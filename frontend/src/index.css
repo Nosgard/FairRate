@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/* The accent role, held deliberately unbunt. `brand` marks where colour is
+   *allowed* to appear — focus, selection, the primary action — while `slate`
+   carries structure: borders, text, surfaces. Both are the same hue right
+   now, and that is the decision, not an oversight. The only colours left in
+   the app are the three that mean something: amber for ratings, blue for
+   omissions, red for validation. Swapping in a real hue is a change of this
+   block alone. */
+@theme {
+  --color-brand-50: #f8fafc;
+  --color-brand-100: #f1f5f9;
+  --color-brand-200: #e2e8f0;
+  --color-brand-300: #cbd5e1;
+  --color-brand-400: #94a3b8;
+  --color-brand-500: #64748b;
+  --color-brand-600: #475569;
+  --color-brand-700: #334155;
+  --color-brand-800: #1e293b;
+}
+
 @keyframes skeleton-pulse {
   0%,
   100% {
