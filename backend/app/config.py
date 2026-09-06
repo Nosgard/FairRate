@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # Defaults to FAKE so the project runs immediately after cloning,
     # with no API key and no external dependency required.
     generator: GeneratorKind = GeneratorKind.FAKE
-    prompt_version: str = "v2"
+    prompt_version: str = "v4"
 
     # Anthropic
     anthropic_api_key: str = ""

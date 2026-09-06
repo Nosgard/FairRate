@@ -6,7 +6,7 @@ import logging
 
 from app.core.models import GeneratedReview, ReviewInput
 from app.core.ports import ReviewGenerator
-from app.core.verification import leaked_names
+from app.core.verification import echoed_omissions, leaked_names
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class ReviewService:
         for attempt in range(2, MAX_ATTEMPTS + 1):
             leaked = leaked_names(request, result)
             if not leaked:
-                return result
+                return self._drop_echoed_omissions(request, result)
 
             # A second attempt is not a fix — the same prompt can fail the
             # same way twice. It is cheap insurance against non-determinism,
@@ -41,4 +41,25 @@ class ReviewService:
         # If the retry also leaked, the flawed result is still returned:
         # a review with a name is better than no review at all, and the
         # # warning above already made the failure visible in the logs.
-        return result
+        return self._drop_echoed_omissions(request, result)
+
+    @staticmethod
+    def _drop_echoed_omissions(
+        request: ReviewInput, result: GeneratedReview
+    ) -> GeneratedReview:
+        """Remove omission entries whose content is still in the review.
+
+        No retry here, unlike a leaked name: the entry is metadata, so
+        deleting it leaves a correct result, while regenerating would reroll
+        the review text as well to fix something that is not wrong with it.
+        """
+        echoed = echoed_omissions(request, result)
+        if not echoed:
+            return result
+
+        logger.warning(
+            "Dropping %d omission(s) still present in the review text",
+            len(echoed),
+        )
+        kept = [entry for entry in result.omissions if entry not in echoed]
+        return result.model_copy(update={"omissions": kept})
