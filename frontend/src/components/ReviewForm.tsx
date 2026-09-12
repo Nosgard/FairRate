@@ -53,32 +53,33 @@ const PERSPECTIVE_LABELS: Record<(typeof PERSPECTIVES)[number], string> = {
  *  prepends its own margin. */
 const FIELD_BASE =
   "w-full rounded-lg border bg-white px-3 py-2 text-base text-slate-900 shadow-sm " +
-  "shadow-slate-900/5 transition duration-150 placeholder:text-slate-400 " +
+  "shadow-slate-900/5 transition duration-150 placeholder:text-slate-500 " +
   "focus:outline-none focus:ring-2";
 
-// The ring sits on the tinted page, not on white, so it needs the 300 step —
-// at 200 it is nearly the same colour as the background and reads as nothing.
+// border-edge, not a slate step: the resting outline needs 3:1 against the
+// page and that scale jumps past it. Token in index.css.
 const FIELD_IDLE =
-  "border-slate-200 hover:border-slate-300 focus:border-brand-500 focus:ring-brand-300";
+  "border-edge hover:border-slate-600 focus:border-brand-500 focus:ring-brand-300";
 
 const FIELD_ERROR =
-  "border-red-300 hover:border-red-400 focus:border-red-500 focus:ring-red-200";
+  "border-red-500 hover:border-red-600 focus:border-red-600 focus:ring-red-200";
 
-/** A field's border colour, red once the field is the one being complained
- *  about. Keeping the two states in one place stops the focus ring and the
- *  border from drifting apart into a red border with a grey ring. */
+/** A field's border colour, red once it is the one being complained about.
+ *  Both states in one place, so border and focus ring cannot drift apart. */
 function fieldClass(margin: string, hasError = false) {
   return `${margin} ${FIELD_BASE} ${hasError ? FIELD_ERROR : FIELD_IDLE}`;
 }
 
-/** Radio chips. The real input is sr-only, so the checked and focused states
- *  have to be drawn entirely by the label around it — including the focus
- *  ring, which the sr-only input could never show on its own. */
+/** Radio chips. The real input is sr-only, so the label draws every state,
+ *  focus ring included — the hidden input could never show one.
+ *
+ *  text-xs below sm: at 375px "No first person" wrapped to two lines and
+ *  stretched its row to 62px against the tone row's 42px. */
 const CHIP =
-  "flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white " +
-  "py-2.5 text-sm text-slate-500 shadow-sm shadow-slate-900/5 transition duration-150 " +
-  "hover:border-slate-300 hover:text-slate-900 " +
-  "has-[:checked]:border-slate-700 has-[:checked]:bg-slate-50 has-[:checked]:font-medium " +
+  "flex cursor-pointer items-center justify-center rounded-lg border border-edge bg-white " +
+  "py-2.5 text-xs text-slate-600 shadow-sm shadow-slate-900/5 transition duration-150 sm:text-sm " +
+  "hover:border-slate-600 hover:text-slate-900 " +
+  "has-[:checked]:border-slate-900 has-[:checked]:bg-slate-50 has-[:checked]:font-medium " +
   "has-[:checked]:text-slate-900 has-[:checked]:shadow-sm " +
   "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-300";
 
@@ -131,10 +132,13 @@ export function ReviewForm({
       {isCollapsed ? (
         <div className="summary-in flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm shadow-slate-900/5">
           <p className="truncate text-sm text-slate-700">{summary}</p>
+          {/* Negative margin against the padding: the hit area grows to
+              32px without the row growing with it. 20px was below the
+              24px minimum. */}
           <button
             type="button"
             onClick={onExpand}
-            className="shrink-0 cursor-pointer text-sm font-medium text-slate-900 underline-offset-2 transition hover:underline"
+            className="-my-1.5 shrink-0 cursor-pointer px-1 py-1.5 text-sm font-medium text-slate-900 underline-offset-2 transition hover:underline"
           >
             Edit inputs
           </button>
@@ -169,12 +173,11 @@ export function ReviewForm({
             >
               Type of place
             </label>
-            {/* The native arrow is drawn by the OS and ignores the palette
-                entirely, so it is replaced by an inline chevron. pr-10 moves
-                the text clear of it; the box keeps its size. */}
+            {/* The OS-drawn arrow ignores the palette, so an inline chevron
+                replaces it. pr-10 clears the text; the box keeps its size. */}
             <select
               id="category"
-              className={`${fieldClass("mt-1.5")} appearance-none bg-[url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2020%2020'%20fill='none'%20stroke='%2364748b'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%208l4%204%204-4'/%3E%3C/svg%3E")] bg-[length:1.25rem_1.25rem] bg-[right_0.65rem_center] bg-no-repeat pr-10`}
+              className={`${fieldClass("mt-1.5")} appearance-none bg-[url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2020%2020'%20fill='none'%20stroke='%237f8da3'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%208l4%204%204-4'/%3E%3C/svg%3E")] bg-[length:1.25rem_1.25rem] bg-[right_0.65rem_center] bg-no-repeat pr-10`}
               {...register("category")}
             >
               {VENUE_CATEGORIES.map((value) => (
@@ -233,10 +236,10 @@ export function ReviewForm({
             <button
               type="button"
               onClick={() => setShowSuggestions((v) => !v)}
-              className="cursor-pointer text-sm text-slate-600 underline decoration-slate-300 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-500"
+              className="-my-1 cursor-pointer py-1 text-sm text-slate-600 underline decoration-slate-400 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-600"
             >
               {showSuggestions ? "Hide" : "Add"} a suggestion for improvement{" "}
-              <span className="text-slate-400">(optional)</span>
+              <span className="text-slate-500">(optional)</span>
             </button>
             {showSuggestions && (
               <textarea
@@ -301,7 +304,7 @@ export function ReviewForm({
       <button
         type="submit"
         disabled={isLoading}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:border-slate-200 disabled:hover:shadow-sm"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-edge bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:border-edge disabled:hover:shadow-sm"
       >
         {/* Decorative only — the label already names the action, so it is
             hidden from screen readers. Drawn inline in currentColor rather

@@ -17,6 +17,11 @@
   --color-brand-600: #475569;
   --color-brand-700: #334155;
   --color-brand-800: #1e293b;
+
+  /* Outline for inputs, selects and chips. Not a slate step: that scale
+     jumps from 2.45:1 to 4.55:1, and 3:1 is what WCAG asks for. This is
+     3.2:1. */
+  --color-edge: #7f8da3;
 }
 
 @keyframes skeleton-pulse {
