@@ -37,7 +37,7 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
       </div>
 
       {review.headline && (
-        <p className="mt-3.5 text-base font-medium leading-snug text-slate-900">
+        <p className="mt-4 text-base font-medium leading-snug text-slate-900">
           {review.headline}
         </p>
       )}
@@ -74,7 +74,7 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
         </div>
       )}
 
-      <div className="mt-3.5 flex items-center justify-between border-t border-slate-200 pt-3">
+      <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
         <span className="text-xs text-slate-600">Edit text</span>
         <span className="text-xs text-slate-500">
           {review.review.length} characters
