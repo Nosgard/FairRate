@@ -1,12 +1,8 @@
 @import "tailwindcss";
 
-/* The accent role, held deliberately unbunt. `brand` marks where colour is
-   *allowed* to appear — focus, selection, the primary action — while `slate`
-   carries structure: borders, text, surfaces. Both are the same hue right
-   now, and that is the decision, not an oversight. The only colours left in
-   the app are the three that mean something: amber for ratings, blue for
-   omissions, red for validation. Swapping in a real hue is a change of this
-   block alone. */
+/* The accent colour, grey on purpose. `brand` marks where colour may appear
+   — focus, selection, primary action — while `slate` carries structure.
+   Swapping in a real hue means editing this block and nothing else. */
 @theme {
   --color-brand-50: #f8fafc;
   --color-brand-100: #f1f5f9;
@@ -22,6 +18,12 @@
      jumps from 2.45:1 to 4.55:1, and 3:1 is what WCAG asks for. This is
      3.2:1. */
   --color-edge: #7f8da3;
+}
+
+/* There is no dark theme. Without this the browser draws the parts it owns
+   — select popup, scrollbars — dark, on a page that stays light. */
+:root {
+  color-scheme: light;
 }
 
 @keyframes skeleton-pulse {
