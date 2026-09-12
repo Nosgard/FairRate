@@ -112,11 +112,9 @@ export default function App() {
     regenerate();
   }
 
-  // The tinted ground is what makes the white fields read as white. There is
-  // no card around the form, so the fields carry the surface themselves —
-  // against a flat neutral background they would read as bare outlines. Flat
-  // rather than a gradient on purpose: every field has to sit on the same
-  // tone, and a gradient with a translucent stop interpolates through grey.
+  // The tint is what makes the white fields read as white. There is no card
+  // around the form, so the fields carry the surface themselves. Flat, not a
+  // gradient: every field has to sit on the same tone.
   return (
     <main className="min-h-dvh bg-slate-50 p-6">
       <div className="mx-auto max-w-2xl">
