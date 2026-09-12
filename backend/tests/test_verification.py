@@ -32,7 +32,7 @@ def _review(
     )
 
 
-def _note(text: str, type_: OmissionType = OmissionType.UNVERIFIABLE_CLAIM) -> Omission:
+def _note(text: str, type_: OmissionType = OmissionType.OFF_TOPIC) -> Omission:
     return Omission(type=type_, note=text)
 
 

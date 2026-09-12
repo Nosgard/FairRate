@@ -63,7 +63,6 @@ class OmissionType(StrEnum):
 
     INSULT = "insult"
     PERSONAL_ATTACK = "personal_attack"
-    UNVERIFIABLE_CLAIM = "unverifiable_claim"
     OFF_TOPIC = "off_topic"
     INSTRUCTION_ATTEMPT = "instruction_attempt"
 

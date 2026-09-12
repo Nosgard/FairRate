@@ -86,8 +86,7 @@ class _EchoingGenerator:
             headline=None,
             suggested_rating=4,
             omissions=[
-                Omission(type=OmissionType.UNVERIFIABLE_CLAIM, note=note)
-                for note in self._notes
+                Omission(type=OmissionType.OFF_TOPIC, note=note) for note in self._notes
             ],
         )
 
