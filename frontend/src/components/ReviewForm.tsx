@@ -16,6 +16,9 @@ import type { ReviewFormValues } from "../lib/schema";
 interface ReviewFormProps {
   onSubmit: (values: ReviewFormValues) => void;
   isLoading: boolean;
+  /** A rate limit is running. ErrorState hides its retry button then, and
+   *  the submit button has to agree — otherwise it fires the next 429. */
+  isRateLimited: boolean;
   /** Shows the one-line summary instead of the fields. The parent decides
    *  when that happens; this component only renders it. */
   isCollapsed: boolean;
@@ -86,6 +89,7 @@ const CHIP =
 export function ReviewForm({
   onSubmit,
   isLoading,
+  isRateLimited,
   isCollapsed,
   onExpand,
 }: ReviewFormProps) {
@@ -303,7 +307,7 @@ export function ReviewForm({
           while the request is in flight. */}
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || isRateLimited}
         className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-edge bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:border-edge disabled:hover:shadow-sm"
       >
         {/* Decorative only — the label already names the action, so it is

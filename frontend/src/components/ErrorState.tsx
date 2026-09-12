@@ -1,51 +1,33 @@
 /** Failure display. Two sentences: what happened, what to do now.
  *  No apology, no "Error:" prefix, no blaming the user. */
 
-import { useEffect, useState } from "react";
-
 import { ERROR_CODES } from "../lib/types";
 
 interface ErrorStateProps {
   code: string;
   message: string;
-  retryAfterSeconds?: number;
+  /** Seconds left on the cooldown, 0 when none runs. App owns the clock
+   *  because the submit button depends on it too. */
+  retryIn: number;
   onRetry: () => void;
 }
 
-function useCountDown(from: number | undefined) {
-  const [remaining, setRemaining] = useState(from ?? 0);
-
-  useEffect(() => {
-    if (from === undefined) return;
-    const timer = setInterval(() => {
-      setRemaining((value) => (value > 0 ? value - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [from]);
-
-  return remaining;
-}
-
-export function ErrorState({
-  code,
-  message,
-  retryAfterSeconds,
-  onRetry,
-}: ErrorStateProps) {
-  const remaining = useCountDown(retryAfterSeconds);
-  const isRateLimited = code === ERROR_CODES.rateLimited;
+export function ErrorState({ code, message, retryIn, onRetry }: ErrorStateProps) {
+  // Once the clock runs out a retry is allowed again, so the panel stops
+  // withholding its button.
+  const isCoolingDown = code === ERROR_CODES.rateLimited && retryIn > 0;
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5">
       <p className="text-base font-medium text-slate-900">
-        {isRateLimited ? "A short pause is needed" : "That didn't work"}
+        {isCoolingDown ? "A short pause is needed" : "That didn't work"}
       </p>
       <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
         {message}
-        {isRateLimited && remaining > 0 && ` Try again in ${remaining}s.`}
+        {isCoolingDown && ` Try again in ${retryIn}s.`}
       </p>
 
-      {isRateLimited ? (
+      {isCoolingDown ? (
         // No retry button here on purpose: it would only trigger the next
         // 429. The countdown above tells the user when to come back.
         <div className="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 p-3">

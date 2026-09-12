@@ -2,10 +2,12 @@ import { useState } from "react";
 
 import { ReviewForm } from "./components/ReviewForm";
 import { ReviewResult } from "./components/ReviewResult";
+import { useCountDown } from "./hooks/useCountDown";
 import { useReviewGeneration } from "./hooks/useReviewGeneration";
 import type { ReviewFormValues } from "./lib/schema";
 import { ErrorState } from "./components/ErrorState";
 import { LoadingState } from "./components/LoadingState";
+import { ERROR_CODES } from "./lib/types";
 import type { GenerationState } from "./lib/types";
 
 /** Renders whichever state the generation is currently in. Written as an
@@ -13,9 +15,12 @@ import type { GenerationState } from "./lib/types";
  *  here — the compiler flags the missing case. */
 function ResultPanel({
   state,
+  retryIn,
   onRetry,
 }: {
   state: GenerationState;
+  /** Seconds left on the rate-limit cooldown, 0 when none is running. */
+  retryIn: number;
   onRetry: () => void;
 }) {
   switch (state.status) {
@@ -30,7 +35,7 @@ function ResultPanel({
         <ErrorState
           code={state.code}
           message={state.message}
-          retryAfterSeconds={state.retryAfterSeconds}
+          retryIn={retryIn}
           onRetry={onRetry}
         />
       );
@@ -52,6 +57,21 @@ export default function App() {
   const hasResult = state.status === "loading" || state.status === "success";
 
   const isCollapsed = hasResult && !isEditing;
+
+  // The countdown lives here, not in ErrorState, because the submit button
+  // depends on it too. Split in two they would drift, and the button could
+  // stay shut after the wait ended. `state` is a new object per request, so
+  // it doubles as the restart token.
+  const retryIn = useCountDown(
+    state.status === "error" ? (state.retryAfterSeconds ?? 0) : 0,
+    state,
+  );
+
+  // Submitting while the clock runs would only earn another 429.
+  const isRateLimited =
+    state.status === "error" &&
+    state.code === ERROR_CODES.rateLimited &&
+    retryIn > 0;
 
   /** Bridges form values to the API request shape. The two are close but
    *  not identical: `language` is fixed for now and never asked for in the
@@ -99,6 +119,7 @@ export default function App() {
           <ReviewForm
             onSubmit={handleSubmit}
             isLoading={state.status === "loading"}
+            isRateLimited={isRateLimited}
             isCollapsed={isCollapsed}
             onExpand={() => setIsEditing(true)}
           />
@@ -106,7 +127,11 @@ export default function App() {
 
         {state.status !== "idle" && (
           <div className="mt-6">
-            <ResultPanel state={state} onRetry={handleRegenerate} />
+            <ResultPanel
+              state={state}
+              retryIn={retryIn}
+              onRetry={handleRegenerate}
+            />
           </div>
         )}
       </div>
