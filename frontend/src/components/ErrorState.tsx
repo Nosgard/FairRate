@@ -18,7 +18,10 @@ export function ErrorState({ code, message, retryIn, onRetry }: ErrorStateProps)
   const isCoolingDown = code === ERROR_CODES.rateLimited && retryIn > 0;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5">
+    <section
+      role="alert"
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5"
+    >
       <p className="text-base font-medium text-slate-900">
         {isCoolingDown ? "A short pause is needed" : "That didn't work"}
       </p>

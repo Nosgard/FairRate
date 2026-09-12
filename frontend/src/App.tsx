@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ReviewForm } from "./components/ReviewForm";
 import { ReviewResult } from "./components/ReviewResult";
@@ -73,6 +73,16 @@ export default function App() {
     state.code === ERROR_CODES.rateLimited &&
     retryIn > 0;
 
+  // Where the answer appears. Focus moves here once a request settles: the
+  // submit button disables itself, which drops focus to <body>, leaving a
+  // keyboard user nowhere. Focusing also scrolls the panel into view.
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (state.status !== "success" && state.status !== "error") return;
+    panelRef.current?.focus();
+  }, [state.status]);
+
   /** Bridges form values to the API request shape. The two are close but
    *  not identical: `language` is fixed for now and never asked for in the
    *  form. Keeping the conversion explicit means a change on either side
@@ -126,7 +136,10 @@ export default function App() {
         </div>
 
         {state.status !== "idle" && (
-          <div className="mt-6">
+          // tabIndex -1 makes the panel focusable for the effect above
+          // without putting it in the tab order. No ring: a box drawn around
+          // the whole card would read as an error.
+          <div ref={panelRef} tabIndex={-1} className="mt-6 focus:outline-none">
             <ResultPanel
               state={state}
               retryIn={retryIn}

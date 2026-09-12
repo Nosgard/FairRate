@@ -25,15 +25,13 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-slate-600">
-          Your review
-        </span>
+        <h2 className="text-sm font-medium text-slate-600">Your review</h2>
         <span className="text-xs text-slate-500">{review.venue_name}</span>
       </div>
 
       <div className="mt-3 flex items-center gap-2.5">
         <Stars rating={review.suggested_rating} />
-        <span className="text-xs text-slate-500">
+        <span aria-hidden="true" className="text-xs text-slate-500">
           Suggested: {review.suggested_rating} of 5
         </span>
       </div>

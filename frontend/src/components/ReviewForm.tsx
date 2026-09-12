@@ -2,7 +2,7 @@
  *  Everything about calling the backend lives in useReviewGeneration. */
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import {
@@ -44,16 +44,20 @@ const PERSPECTIVE_LABELS: Record<(typeof PERSPECTIVES)[number], string> = {
   we: "We",
 };
 
-/** The field recipe, shared by all five inputs. `bg-white` is doing real
- *  work here rather than decoration: with no card around the form, each
- *  field is its own white surface on the tinted ground, and the shadow
- *  supplies the depth a card would otherwise contribute.
+/** Written out rather than left to CSS `capitalize`, so the spoken label
+ *  matches the visible one. */
+const TONE_LABELS: Record<(typeof TONES)[number], string> = {
+  neutral: "Neutral",
+  friendly: "Friendly",
+  concise: "Concise",
+};
+
+/** Shared by all five inputs. `bg-white` is structural, not decoration:
+ *  with no card around the form, each field is its own surface.
  *
- *  The top margin is deliberately NOT part of this: the suggestions textarea
- *  uses mt-2 where the rest use mt-1.5, and two utilities of equal
- *  specificity are resolved by stylesheet order, not by their order in the
- *  string — so an override here would be a coin flip. Each call site
- *  prepends its own margin. */
+ *  Margins stay out. The suggestions textarea needs mt-2 where the others
+ *  use mt-1.5, and two utilities of equal specificity are decided by
+ *  stylesheet order, not string order — so each call site passes its own. */
 const FIELD_BASE =
   "w-full rounded-lg border bg-white px-3 py-2 text-base text-slate-900 shadow-sm " +
   "shadow-slate-900/5 transition duration-150 placeholder:text-slate-500 " +
@@ -86,6 +90,8 @@ const CHIP =
   "has-[:checked]:text-slate-900 has-[:checked]:shadow-sm " +
   "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-300";
 
+const GROUP_LABEL = "block text-sm font-medium text-slate-800";
+
 export function ReviewForm({
   onSubmit,
   isLoading,
@@ -112,6 +118,14 @@ export function ReviewForm({
   });
 
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Stable ids for the aria-* wiring below.
+  const uid = useId();
+  const venueErrorId = `${uid}-venue-error`;
+  const pairNoteId = `${uid}-pair-note`;
+  const suggestionsId = `${uid}-suggestions`;
+  const perspectiveLabelId = `${uid}-perspective`;
+  const toneLabelId = `${uid}-tone`;
 
   // Only the three fields the summary shows are subscribed to, so typing in
   // the text areas does not re-render the whole form on every keystroke.
@@ -160,11 +174,17 @@ export function ReviewForm({
               id="venue_name"
               type="text"
               placeholder="Trattoria Bella, New York"
+              aria-invalid={errors.venue_name ? true : undefined}
+              aria-describedby={errors.venue_name ? venueErrorId : undefined}
               className={fieldClass("mt-1.5", Boolean(errors.venue_name))}
               {...register("venue_name")}
             />
             {errors.venue_name && (
-              <p className="mt-1 text-sm text-red-700">
+              <p
+                id={venueErrorId}
+                role="alert"
+                className="mt-1 text-sm text-red-700"
+              >
                 {errors.venue_name.message}
               </p>
             )}
@@ -203,6 +223,8 @@ export function ReviewForm({
               id="liked"
               rows={3}
               placeholder="Homemade pasta, very friendly welcome"
+              aria-invalid={errors.liked ? true : undefined}
+              aria-describedby={pairNoteId}
               className={`${fieldClass("mt-1.5", Boolean(errors.liked))} resize-y leading-relaxed`}
               {...register("liked")}
             />
@@ -219,18 +241,24 @@ export function ReviewForm({
               id="disliked"
               rows={3}
               placeholder="Waited 40 minutes for the starter"
+              aria-invalid={errors.liked ? true : undefined}
+              aria-describedby={pairNoteId}
               className={`${fieldClass("mt-1.5", Boolean(errors.liked))} resize-y leading-relaxed`}
               {...register("disliked")}
             />
             {/* The refine rule in schema.ts attaches its message to `liked`,
-                but it concerns both fields — so it is shown here, below the
-                pair, rather than under the first one in isolation. */}
+                but it concerns both fields, so it sits below the pair. Both
+                textareas point at it via aria-describedby. */}
             {errors.liked ? (
-              <p className="mt-1 text-sm text-red-700">
+              <p
+                id={pairNoteId}
+                role="alert"
+                className="mt-1 text-sm text-red-700"
+              >
                 {errors.liked.message}
               </p>
             ) : (
-              <p className="mt-1 text-sm text-slate-500">
+              <p id={pairNoteId} className="mt-1 text-sm text-slate-500">
                 One of these two fields is enough.
               </p>
             )}
@@ -240,13 +268,18 @@ export function ReviewForm({
             <button
               type="button"
               onClick={() => setShowSuggestions((v) => !v)}
+              aria-expanded={showSuggestions}
+              aria-controls={suggestionsId}
               className="-my-1 cursor-pointer py-1 text-sm text-slate-600 underline decoration-slate-400 underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-600"
             >
-              {showSuggestions ? "Hide" : "Add"} a suggestion for improvement{" "}
+              {showSuggestions
+                ? "Hide the suggestion field"
+                : "Add a suggestion for improvement"}{" "}
               <span className="text-slate-500">(optional)</span>
             </button>
             {showSuggestions && (
               <textarea
+                id={suggestionsId}
                 rows={2}
                 placeholder="One more person on weekends"
                 aria-label="Suggestion for improvement"
@@ -256,47 +289,59 @@ export function ReviewForm({
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-800">
-              Point of view
-            </label>
-            <div className="mt-1.5 grid grid-cols-3 gap-2">
-              {PERSPECTIVES.map((value) => (
-                <label
-                  key={value}
-                  className={`${CHIP} px-2 text-center`}
-                >
-                  <input
-                    type="radio"
-                    value={value}
-                    className="sr-only"
-                    {...register("perspective")}
-                  />
-                  {PERSPECTIVE_LABELS[value]}
-                </label>
-              ))}
+          {/* Perspective and tone belong together — they shape how the review
+              is written, not what it says. Without the rule the form was seven
+              blocks at one pitch, required and optional looking alike. */}
+          <div className="space-y-4 border-t border-slate-200 pt-4">
+            <div>
+              <span id={perspectiveLabelId} className={GROUP_LABEL}>
+                Point of view
+              </span>
+              {/* role="radiogroup" rather than a fieldset: it names the group
+                  for screen readers without a fieldset's own box model, so
+                  nothing shifts. The <label> that stood here named nothing. */}
+              <div
+                role="radiogroup"
+                aria-labelledby={perspectiveLabelId}
+                className="mt-1.5 grid grid-cols-3 gap-2"
+              >
+                {PERSPECTIVES.map((value) => (
+                  <label key={value} className={`${CHIP} px-2 text-center`}>
+                    <input
+                      type="radio"
+                      value={value}
+                      aria-label={PERSPECTIVE_LABELS[value]}
+                      className="sr-only"
+                      {...register("perspective")}
+                    />
+                    {PERSPECTIVE_LABELS[value]}
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-800">
-              Tone
-            </label>
-            <div className="mt-1.5 grid grid-cols-3 gap-2">
-              {TONES.map((value) => (
-                <label
-                  key={value}
-                  className={`${CHIP} capitalize`}
-                >
-                  <input
-                    type="radio"
-                    value={value}
-                    className="sr-only"
-                    {...register("tone")}
-                  />
-                  {value}
-                </label>
-              ))}
+            <div>
+              <span id={toneLabelId} className={GROUP_LABEL}>
+                Tone
+              </span>
+              <div
+                role="radiogroup"
+                aria-labelledby={toneLabelId}
+                className="mt-1.5 grid grid-cols-3 gap-2"
+              >
+                {TONES.map((value) => (
+                  <label key={value} className={CHIP}>
+                    <input
+                      type="radio"
+                      value={value}
+                      aria-label={TONE_LABELS[value]}
+                      className="sr-only"
+                      {...register("tone")}
+                    />
+                    {TONE_LABELS[value]}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </>
