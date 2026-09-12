@@ -29,7 +29,15 @@ function ResultPanel({
     case "loading":
       return <LoadingState />;
     case "success":
-      return <ReviewResult review={state.review} onRegenerate={onRetry} />;
+      // Keyed on the review id so a fresh generation gets a fresh
+      // component — that is what discards any hand edit still held inside.
+      return (
+        <ReviewResult
+          key={state.review.id}
+          review={state.review}
+          onRegenerate={onRetry}
+        />
+      );
     case "error":
       return (
         <ErrorState

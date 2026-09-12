@@ -7,9 +7,12 @@ import { useEffect, useState } from "react";
 
 interface CopyButtonProps {
   text: string;
+  /** Nothing to copy. Without this an empty review would still report
+   *  "Copied", which is worse than the button being visibly unavailable. */
+  disabled?: boolean;
 }
 
-export function CopyButton({ text }: CopyButtonProps) {
+export function CopyButton({ text, disabled = false }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -53,7 +56,8 @@ export function CopyButton({ text }: CopyButtonProps) {
     <button
       type="button"
       onClick={handleCopy}
-      className="flex-1 cursor-pointer rounded-lg border border-edge bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+      disabled={disabled}
+      className="flex-1 cursor-pointer rounded-lg border border-edge bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:border-edge disabled:hover:shadow-sm"
     >
       {copied ? "Copied" : "Copy"}
     </button>
