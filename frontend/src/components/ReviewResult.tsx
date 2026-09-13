@@ -110,9 +110,11 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
           <h2 className="text-sm font-medium text-ink-muted">Your review</h2>
           {isEdited && <span className="text-xs text-ink-muted">edited</span>}
         </div>
-        <span className="truncate text-xs text-ink-muted">
-          {review.venue_name}
-        </span>
+        {review.venue_name && (
+          <span className="truncate text-xs text-ink-muted">
+            {review.venue_name}
+          </span>
+        )}
       </div>
 
       <div className="mt-3 flex items-center gap-2.5">

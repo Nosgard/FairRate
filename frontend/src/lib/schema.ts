@@ -23,11 +23,7 @@ export const PERSPECTIVES = ["impersonal", "i", "we"] as const;
 
 export const reviewFormSchema = z
   .object({
-    venue_name: z
-      .string()
-      .trim()
-      .min(2, "Please enter at least two characters.")
-      .max(120, "That name is too long."),
+    venue_name: z.string().trim().max(120, "That name is too long."),
     category: z.enum(VENUE_CATEGORIES),
     liked: z.string().trim().max(2000, "That is a bit too long."),
     disliked: z.string().trim().max(2000, "That is a bit too long."),

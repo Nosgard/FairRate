@@ -175,7 +175,8 @@ export function ReviewForm({
               htmlFor="venue_name"
               className="block text-sm font-medium text-ink"
             >
-              Which place are you reviewing?
+              Which place are you reviewing?{" "}
+              <span className="font-normal text-ink-muted">(optional)</span>
             </label>
             <input
               id="venue_name"
