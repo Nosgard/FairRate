@@ -1,23 +1,29 @@
+/* Self-hosted, so the type does not depend on a font CDN. Weight axis only
+   — nothing in the interface needs an italic. */
+@import "@fontsource-variable/newsreader/wght.css";
+@import "@fontsource-variable/ibm-plex-sans/wght.css";
 @import "tailwindcss";
 
-/* The accent colour, grey on purpose. `brand` marks where colour may appear
-   — focus, selection, primary action — while `slate` carries structure.
-   Swapping in a real hue means editing this block and nothing else. */
+/* Two families, one job each. Newsreader carries the review — that text
+   leaves here as prose — and IBM Plex Sans the machinery around it. The
+   split shows which part of the screen is the product. */
 @theme {
-  --color-brand-50: #f8fafc;
-  --color-brand-100: #f1f5f9;
-  --color-brand-200: #e2e8f0;
-  --color-brand-300: #cbd5e1;
-  --color-brand-400: #94a3b8;
-  --color-brand-500: #64748b;
-  --color-brand-600: #475569;
-  --color-brand-700: #334155;
-  --color-brand-800: #1e293b;
+  --font-sans: "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader Variable", ui-serif, Georgia, serif;
+  --default-font-family: var(--font-sans);
 
-  /* Outline for inputs, selects and chips. Not a slate step: that scale
-     jumps from 2.45:1 to 4.55:1, and 3:1 is what WCAG asks for. This is
-     3.2:1. */
-  --color-edge: #7f8da3;
+  /* Chosen values, not scale steps. Paper is warm by three points, well
+     short of cream; ink is a warm near-black. */
+  --color-paper: #fbfaf8;
+  --color-ink: #1c1b19;
+  --color-ink-muted: #6f6c66;
+  --color-rule: #dcd9d3;
+
+  /* Outline of every control. 3:1 against paper, as WCAG 1.4.11 asks. */
+  --color-edge: #8a8681;
+
+  /* One radius for everything. Two corner sizes encoded nothing. */
+  --radius-edge: 4px;
 }
 
 /* There is no dark theme. Without this the browser draws the parts it owns

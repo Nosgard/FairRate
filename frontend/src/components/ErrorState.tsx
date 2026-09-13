@@ -20,12 +20,12 @@ export function ErrorState({ code, message, retryIn, onRetry }: ErrorStateProps)
   return (
     <section
       role="alert"
-      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5"
+      className="rounded-edge border border-rule bg-white p-5"
     >
-      <p className="text-base font-medium text-slate-900">
+      <p className="font-serif text-xl leading-snug font-medium text-ink">
         {isCoolingDown ? "A short pause is needed" : "That didn't work"}
       </p>
-      <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+      <p className="mt-2 text-sm leading-relaxed text-ink-muted">
         {message}
         {isCoolingDown && ` Try again in ${retryIn}s.`}
       </p>
@@ -33,21 +33,19 @@ export function ErrorState({ code, message, retryIn, onRetry }: ErrorStateProps)
       {isCoolingDown ? (
         // No retry button here on purpose: it would only trigger the next
         // 429. The countdown above tells the user when to come back.
-        <div className="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 p-3">
-          <span className="text-sm text-amber-900">
-            Your input has been kept.
-          </span>
-        </div>
+        // Unmarked on purpose: the change bar means "something was taken
+        // out here" and nothing else.
+        <p className="mt-4 text-sm text-ink-muted">Your input has been kept.</p>
       ) : (
         <>
           <button
             type="button"
             onClick={onRetry}
-            className="mt-4 w-full cursor-pointer rounded-lg border border-edge bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+            className="mt-5 w-full cursor-pointer rounded-edge border border-ink bg-ink px-4 py-3 text-base font-medium text-paper transition duration-150 hover:bg-ink/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/25"
           >
             Try again
           </button>
-          <p className="mt-3 text-center text-xs text-slate-500">
+          <p className="mt-3 text-center text-xs text-ink-muted">
             Error code: {code}
           </p>
         </>

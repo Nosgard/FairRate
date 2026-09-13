@@ -120,14 +120,15 @@ export default function App() {
     regenerate();
   }
 
-  // The tint is what makes the white fields read as white. There is no card
-  // around the form, so the fields carry the surface themselves. Flat, not a
-  // gradient: every field has to sit on the same tone.
+  // A masthead, not a hero: the name in the text face, the promise in the
+  // interface face, a rule closing the block.
   return (
-    <main className="min-h-dvh bg-slate-50 p-6">
+    <main className="min-h-dvh bg-paper p-6">
       <div className="mx-auto max-w-2xl">
-        <h1 className="text-2xl font-medium text-slate-900">FairRate</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="font-serif text-[2rem] leading-none font-medium tracking-tight text-ink">
+          FairRate
+        </h1>
+        <p className="mt-2 border-b border-rule pb-5 text-sm text-ink-muted">
           Tell us how it was — we'll write a fair review from it.
         </p>
 

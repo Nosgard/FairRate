@@ -42,10 +42,10 @@ export function CopyButton({ text, disabled = false }: CopyButtonProps) {
           readOnly
           value={text}
           onFocus={(e) => e.currentTarget.select()}
-          className="w-full rounded-lg border border-edge bg-white p-2 text-sm shadow-sm shadow-slate-900/5"
+          className="w-full rounded-edge border border-edge bg-white p-2 font-serif text-sm text-ink"
           rows={3}
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-ink-muted">
           Copying is unavailable here — select the text and press Ctrl+C.
         </p>
       </div>
@@ -57,7 +57,9 @@ export function CopyButton({ text, disabled = false }: CopyButtonProps) {
       type="button"
       onClick={handleCopy}
       disabled={disabled}
-      className="flex-1 cursor-pointer rounded-lg border border-edge bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm transition duration-150 ease-out hover:border-slate-900 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:border-edge disabled:hover:shadow-sm"
+      // Outlined: the submit button above is the filled one, and two filled
+      // blocks on a screen read as two main actions.
+      className="flex-1 cursor-pointer rounded-edge border border-edge bg-white px-4 py-3 text-base font-medium text-ink transition duration-150 hover:border-ink hover:bg-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/25 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-edge disabled:hover:bg-white"
     >
       {copied ? "Copied" : "Copy"}
     </button>

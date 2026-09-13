@@ -1,6 +1,6 @@
 /** Displays a generated review, and lets the user edit it before copying.
- *  The text is the product, so it gets the least UI chrome — no card border
- *  around the prose, and the editor only appears when asked for. */
+ *  The review is set as prose in the text face — it is the product, and
+ *  everything around it is machinery in the interface face. */
 
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
@@ -12,6 +12,10 @@ interface ReviewResultProps {
   onRegenerate: () => void;
 }
 
+/** Gold, the colour a review star has everywhere else. It is the one warm
+ *  thing on the page, which is the point: a rating is not part of the prose.
+ *  The empty stars take the page's own rule colour rather than a cool grey,
+ *  so they sit with the rest of the palette. */
 function Stars({ rating }: { rating: number }) {
   return (
     <span
@@ -19,18 +23,30 @@ function Stars({ rating }: { rating: number }) {
       aria-label={`Suggested rating: ${rating} out of 5`}
     >
       {"★".repeat(rating)}
-      <span className="text-slate-300">{"★".repeat(5 - rating)}</span>
+      <span className="text-rule">{"★".repeat(5 - rating)}</span>
     </span>
   );
 }
 
-/** The two text buttons in the footer. Underlined because they carry no
- *  border or fill of their own, and padded out to clear the 24px minimum
- *  without the footer row growing — the negative margin absorbs it. */
+/** The review sits in the same box whether you read it or edit it, so the
+ *  mode change moves nothing. Everything matches except the fill: white means
+ *  "type here" throughout this app, so the review is only white while it
+ *  actually is editable.
+ *
+ *  -mx-3 cancels the block's padding and stops at the gutter, which belongs
+ *  to the change bar. `block` because a textarea is inline-block by default,
+ *  and its descender space made the card taller in edit mode. */
+const REVIEW_BOX =
+  "mt-3 -mx-3 block w-[calc(100%+1.5rem)] rounded-edge border border-edge " +
+  "px-3 py-2 font-serif text-[1.0625rem] leading-relaxed text-ink " +
+  "shadow-sm shadow-ink/5";
+
+/** Footer text buttons. Underlined because they carry no border or fill,
+ *  and padded to clear the 24px minimum without the row growing. */
 const FOOTER_BUTTON =
-  "-my-1 cursor-pointer py-1 text-xs text-slate-600 underline decoration-slate-400 " +
-  "underline-offset-2 transition hover:text-slate-900 hover:decoration-slate-600 " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300";
+  "-my-1 cursor-pointer py-1 text-xs text-ink-muted underline decoration-edge " +
+  "underline-offset-2 transition hover:text-ink hover:decoration-ink " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/15";
 
 export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
   // The edit lives here, not in App: it is not part of the request
@@ -47,13 +63,13 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  /** Grow the box to its content, so switching out of the paragraph does not
-   *  cut the text off or leave empty space below it.
-   *
-   *  The borders have to be added back: scrollHeight covers content and
-   *  padding but not the border, while box-sizing is border-box — setting
-   *  the height to scrollHeight alone leaves the box two pixels short and
-   *  clips the last line. */
+  // Something was taken out of this passage, and it is still the passage we
+  // generated. Both have to hold for the change bar to mean anything.
+  const showChangeBar = !isEdited && review.omissions.length > 0;
+
+  /** Grow the box to its content. The borders have to be added back:
+   *  scrollHeight covers content and padding but not the border, and under
+   *  box-sizing: border-box that leaves the last line clipped. */
   function fitToContent(el: HTMLTextAreaElement) {
     const style = getComputedStyle(el);
     const borders =
@@ -72,58 +88,101 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
     // Caret at the end rather than selecting everything — the usual intent
     // is to adjust a phrase, not to replace the whole review.
     el.setSelectionRange(el.value.length, el.value.length);
+
+    // A pixel height is only true for the width it was measured at. Resize
+    // the window or let a webfont land, and the text rewraps behind a
+    // scrollbar. Observing the element catches every cause.
+    let lastWidth = el.clientWidth;
+    const observer = new ResizeObserver(() => {
+      // Width only — reacting to height would chase this callback's own work.
+      if (el.clientWidth === lastWidth) return;
+      lastWidth = el.clientWidth;
+      fitToContent(el);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [isEditing]);
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5">
-      <div className="flex items-center justify-between">
+    <section className="rounded-edge border border-rule bg-white p-5">
+      <div className="flex items-baseline justify-between gap-3">
         <div className="flex items-baseline gap-2">
-          <h2 className="text-sm font-medium text-slate-600">Your review</h2>
-          {isEdited && (
-            <span className="text-xs text-slate-500">· edited</span>
-          )}
+          <h2 className="text-sm font-medium text-ink-muted">Your review</h2>
+          {isEdited && <span className="text-xs text-ink-muted">edited</span>}
         </div>
-        <span className="text-xs text-slate-500">{review.venue_name}</span>
+        <span className="truncate text-xs text-ink-muted">
+          {review.venue_name}
+        </span>
       </div>
 
       <div className="mt-3 flex items-center gap-2.5">
         <Stars rating={review.suggested_rating} />
-        <span aria-hidden="true" className="text-xs text-slate-500">
-          Suggested: {review.suggested_rating} of 5
+        <span aria-hidden="true" className="text-xs text-ink-muted">
+          {review.suggested_rating} of 5
         </span>
       </div>
 
-      {review.headline && (
-        <p className="mt-4 text-base font-medium leading-snug text-slate-900">
-          {review.headline}
-        </p>
-      )}
+      {/* A change bar in the margin, the mark a copy editor puts beside an
+          altered passage. It appears only when something was actually taken
+          out, so its presence is the information. */}
+      <div
+        className={`mt-4 -ml-3 border-l-2 pl-3 ${
+          showChangeBar ? "border-ink" : "border-transparent"
+        }`}
+      >
+        {/* The block has its own padding so the box has somewhere to sit.
+            Without it the field's outline landed flush against the change
+            bar. The gutter belongs to the mark. */}
+        <div className="px-3">
+          {review.headline && (
+            <p className="font-serif text-xl leading-snug font-medium text-ink">
+              {review.headline}
+            </p>
+          )}
 
-      {isEditing ? (
-        // -mx-3 px-3 cancels out: the box grows into the card's padding
-        // while the text column stays exactly where the paragraph had it.
-        <textarea
-          id={textId}
-          ref={textareaRef}
-          value={text}
-          onChange={(event) => {
-            setText(event.target.value);
-            fitToContent(event.currentTarget);
-          }}
-          aria-label="Your review"
-          aria-describedby={counterId}
-          className="mt-2 -mx-3 w-[calc(100%+1.5rem)] resize-none rounded-lg border border-edge bg-white px-3 py-2 text-[15px] leading-relaxed text-slate-900 shadow-sm shadow-slate-900/5 transition duration-150 focus:border-brand-500 focus:ring-2 focus:ring-brand-300 focus:outline-none"
-        />
-      ) : (
-        <p
-          id={textId}
-          className="mt-2 text-[15px] leading-relaxed text-slate-900"
-        >
-          {text}
-        </p>
-      )}
+          {isEditing ? (
+            <textarea
+              id={textId}
+              ref={textareaRef}
+              value={text}
+              onChange={(event) => {
+                setText(event.target.value);
+                fitToContent(event.currentTarget);
+              }}
+              aria-label="Your review"
+              aria-describedby={counterId}
+              className={`${REVIEW_BOX} resize-none bg-white transition duration-150 focus:border-ink focus:ring-2 focus:ring-ink/15 focus:outline-none`}
+            />
+          ) : (
+            // whitespace-pre-wrap: a <p> would swallow line breaks typed
+            // in the editor.
+            <p id={textId} className={`${REVIEW_BOX} bg-ink/[0.03] whitespace-pre-wrap`}>
+              {text}
+            </p>
+          )}
 
-      <div className="mt-4 flex gap-2">
+        {/* Claiming we removed something from the user's own words is worth
+            a sentence, not a badge. Hidden once the text is hand-edited —
+            the claim covers the generated wording only. */}
+          {showChangeBar && (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-ink">What we left out</p>
+              <ul className="mt-1 space-y-1">
+                {review.omissions.map((omission, index) => (
+                  <li
+                    key={index}
+                    className="text-sm leading-relaxed text-ink-muted"
+                  >
+                    {omission.note}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-5 flex gap-2">
         <CopyButton text={text} disabled={text.trim().length === 0} />
         <button
           type="button"
@@ -134,31 +193,13 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
               ? "Generate again — replaces your edited text"
               : "Generate again"
           }
-          className="w-12 cursor-pointer rounded-lg border border-edge text-slate-600 transition duration-150 hover:border-slate-400 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+          className="w-12 cursor-pointer rounded-edge border border-edge text-ink-muted transition duration-150 hover:border-ink hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/15"
         >
           ↻
         </button>
       </div>
 
-      {/* Omitted when the list is empty: "nothing was removed" is noise, and
-          most reviews trigger no rule at all. Omitted again once the text is
-          edited — the note describes what was kept out of the *generated*
-          review, and the app cannot vouch for it after a hand edit. It comes
-          back if the text is reverted. */}
-      {!isEdited && review.omissions.length > 0 && (
-        <div className="mt-4 rounded-lg bg-blue-50 p-3">
-          <p className="text-sm font-medium text-blue-900">Fairly worded</p>
-          <ul className="mt-2 space-y-1">
-            {review.omissions.map((omission, index) => (
-              <li key={index} className="text-xs leading-relaxed text-blue-800">
-                — {omission.note}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
+      <div className="mt-4 flex items-center justify-between border-t border-rule pt-3">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -179,7 +220,7 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
             </button>
           )}
         </div>
-        <span id={counterId} className="text-xs text-slate-500">
+        <span id={counterId} className="text-xs text-ink-muted">
           {text.length} characters
         </span>
       </div>
