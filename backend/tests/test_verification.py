@@ -67,6 +67,26 @@ def test_venue_name_is_not_a_leak() -> None:
     assert leaked_names(request, result) == set()
 
 
+def test_empty_venue_name_excludes_nothing() -> None:
+    """With no venue name there is nothing to exempt, and nothing to crash on
+
+    The exclusion set is what keeps a word like "Brandt" in "Dental office
+    Dr. Brandt" from counting as a leak. Empty, it simply exempts nobody —
+    the check gets stricter, never weaker.
+    """
+    request = ReviewInput(venue_name="", disliked="the waiter Marcus was unfriendly")
+    result = _review("The service by Marcus felt unfriendly throughout.", venue="")
+
+    assert leaked_names(request, result) == {"Marcus"}
+
+
+def test_empty_venue_name_still_reports_no_false_leak() -> None:
+    request = ReviewInput(venue_name="", disliked="the waiter Marcus was unfriendly")
+    result = _review("The service felt unfriendly throughout the evening.", venue="")
+
+    assert leaked_names(request, result) == set()
+
+
 def test_sentence_start_is_not_a_candidate() -> None:
     """A capitalised word starting a sentence is usually not a name"""
     request = ReviewInput(

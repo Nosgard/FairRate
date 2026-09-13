@@ -70,7 +70,7 @@ class OmissionType(StrEnum):
 class ReviewInput(BaseModel):
     """Validated form input. The only entry point for user data."""
 
-    venue_name: Annotated[str, Field(min_length=2, max_length=120)]
+    venue_name: Annotated[str, Field(default="", max_length=120)]
     category: VenueCategory = VenueCategory.OTHER
 
     liked: Annotated[str, Field(default="", max_length=2000)]

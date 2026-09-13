@@ -37,7 +37,7 @@ class LanguageSchema(StrEnum):
 class ReviewRequestSchema(BaseModel):
     """What the frontend sends."""
 
-    venue_name: Annotated[str, Field(min_length=2, max_length=120)]
+    venue_name: Annotated[str, Field(default="", max_length=120)]
     # VenueCategory is reused directly, unlike Tone/Language above: it is
     # identical across form, domain and response, and duplicating it
     # would add upkeep without adding any actual decoupling.
