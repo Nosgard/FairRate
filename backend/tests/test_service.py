@@ -55,6 +55,25 @@ async def test_requires_liked_or_disliked() -> None:
         ReviewInput(venue_name="Empty Place")
 
 
+async def test_venue_name_may_be_omitted(service: ReviewService) -> None:
+    request = ReviewInput(liked="homemade pasta")
+
+    assert request.venue_name == ""
+
+    result = await service.create_review(request)
+
+    assert result.venue_name == ""
+    # The fake generator builds its headline from the name; with none given
+    # it must not trail off into "A visit to ".
+    assert result.headline == "A visit"
+
+
+async def test_whitespace_venue_name_is_stored_empty() -> None:
+    request = ReviewInput(venue_name="   ", liked="homemade pasta")
+
+    assert request.venue_name == ""
+
+
 async def test_propagates_unavailable_error(service: ReviewService) -> None:
     request = ReviewInput(venue_name=TRIGGER_UNAVAILABLE, liked="something")
 

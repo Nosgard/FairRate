@@ -50,7 +50,9 @@ class FakeGenerator:
             venue_name=request.venue_name,
             category=request.category,
             review=review,
-            headline=f"A visit to {request.venue_name}",
+            headline=(
+                f"A visit to {request.venue_name}" if request.venue_name else "A visit"
+            ),
             suggested_rating=4 if request.liked else 2,
             omissions=[
                 Omission(
