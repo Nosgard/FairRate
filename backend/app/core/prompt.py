@@ -33,8 +33,13 @@ class PromptBuilder:
 
     def build_user_message(self, request: ReviewInput) -> str:
         """Render the request as data, clearly fenced off from instructions."""
-        fields = [
-            f"Venue: {request.venue_name}",
+        fields: list[str] = []
+        # Sent only when there is one. An empty labelled field is an
+        # invitation to fill it, and an invented venue name is exactly what
+        # the missing-name rule in the system prompt forbids.
+        if request.venue_name:
+            fields.append(f"Venue: {request.venue_name}")
+        fields += [
             f"Category: {request.category.value}",
             f"Language: {request.language.value}",
             f"Tone: {request.tone.value}",
