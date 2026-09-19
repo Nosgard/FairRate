@@ -20,7 +20,7 @@ export function ErrorState({ code, message, retryIn, onRetry }: ErrorStateProps)
   return (
     <section
       role="alert"
-      className="rounded-edge border border-rule bg-white p-5"
+      className="rounded-edge border border-rule bg-white p-4 sm:p-5"
     >
       <p className="font-serif text-xl leading-snug font-medium text-ink">
         {isCoolingDown ? "A short pause is needed" : "That didn't work"}

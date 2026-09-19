@@ -19,7 +19,7 @@ function Bar({ width }: BarProps) {
 export function LoadingState() {
   return (
     <section
-      className="rounded-edge border border-rule bg-white p-5"
+      className="rounded-edge border border-rule bg-white p-4 sm:p-5"
       aria-busy="true"
       aria-live="polite"
     >

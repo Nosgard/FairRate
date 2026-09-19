@@ -33,13 +33,18 @@ function Stars({ rating }: { rating: number }) {
  *  "type here" throughout this app, so the review is only white while it
  *  actually is editable.
  *
- *  -mx-3 cancels the block's padding and stops at the gutter, which belongs
- *  to the change bar. `block` because a textarea is inline-block by default,
- *  and its descender space made the card taller in edit mode. */
+ *  On a phone the box fills its block and pads tightly; from sm it breaks out
+ *  by -mx-3 to cancel the block's padding, stopping at the gutter that
+ *  belongs to the change bar. Every millimetre matters at 320px, where the
+ *  chain of paddings between screen edge and prose was eating a third of the
+ *  width.
+ *
+ *  `block` because a textarea is inline-block by default, and its descender
+ *  space made the card taller in edit mode. */
 const REVIEW_BOX =
-  "mt-3 -mx-3 block w-[calc(100%+1.5rem)] rounded-edge border border-edge " +
-  "px-3 py-2 font-serif text-[1.0625rem] leading-relaxed text-ink " +
-  "shadow-sm shadow-ink/5";
+  "mt-3 block w-full rounded-edge border border-edge px-2 py-2 font-serif " +
+  "text-base leading-relaxed text-ink shadow-sm shadow-ink/5 " +
+  "sm:-mx-3 sm:w-[calc(100%+1.5rem)] sm:px-3 sm:text-[1.0625rem]";
 
 /** Footer text buttons. Underlined because they carry no border or fill,
  *  and padded to clear the 24px minimum without the row growing. */
@@ -104,14 +109,16 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
   }, [isEditing]);
 
   return (
-    <section className="rounded-edge border border-rule bg-white p-5">
+    <section className="rounded-edge border border-rule bg-white p-4 sm:p-5">
       <div className="flex items-baseline justify-between gap-3">
         <div className="flex items-baseline gap-2">
           <h2 className="text-sm font-medium text-ink-muted">Your review</h2>
           {isEdited && <span className="text-xs text-ink-muted">edited</span>}
         </div>
+        {/* Hidden on phones: the summary row directly above carries the same
+            name, and here it only squeezed "Your review" onto two lines. */}
         {review.venue_name && (
-          <span className="truncate text-xs text-ink-muted">
+          <span className="truncate text-xs text-ink-muted max-sm:hidden">
             {review.venue_name}
           </span>
         )}
@@ -128,16 +135,17 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
           altered passage. It appears only when something was actually taken
           out, so its presence is the information. */}
       <div
-        className={`mt-4 -ml-3 border-l-2 pl-3 ${
+        className={`mt-4 -ml-2 border-l-2 pl-2 sm:-ml-3 sm:pl-3 ${
           showChangeBar ? "border-ink" : "border-transparent"
         }`}
       >
-        {/* The block has its own padding so the box has somewhere to sit.
-            Without it the field's outline landed flush against the change
-            bar. The gutter belongs to the mark. */}
-        <div className="px-3">
+        {/* From sm the block pads itself so the box has somewhere to sit —
+            without it the field's outline landed flush against the change
+            bar. Below sm there is no width to spare, so the box sits inside
+            the block instead of breaking out of it. */}
+        <div className="sm:px-3">
           {review.headline && (
-            <p className="font-serif text-xl leading-snug font-medium text-ink">
+            <p className="font-serif text-lg leading-snug font-medium text-ink sm:text-xl">
               {review.headline}
             </p>
           )}

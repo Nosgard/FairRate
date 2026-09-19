@@ -39,7 +39,7 @@ const CATEGORY_LABELS: Record<(typeof VENUE_CATEGORIES)[number], string> = {
 };
 
 const PERSPECTIVE_LABELS: Record<(typeof PERSPECTIVES)[number], string> = {
-  impersonal: "No first person",
+  impersonal: "Impersonal",
   i: "I",
   we: "We",
 };
@@ -78,11 +78,14 @@ function fieldClass(margin: string, hasError = false) {
 /** Radio chips. The real input is sr-only, so the label draws every state,
  *  focus ring included. The chosen one takes a border and a faint tint, not
  *  a fill — filled, it outweighed the submit button, and did so on first
- *  paint for two defaults nobody picked. text-xs below sm keeps "No first
- *  person" on one line at 375px. */
+ *  paint for two defaults nobody picked.
+ *
+ *  A third of the row is 85px at 320px. text-xs below sm buys some of the
+ *  fit; the rest came from shortening the longest label, which no type scale
+ *  was going to rescue. */
 const CHIP =
   "flex cursor-pointer items-center justify-center rounded-edge border border-edge bg-white " +
-  "py-2.5 text-xs text-ink-muted transition duration-150 sm:text-sm " +
+  "py-2 text-xs text-ink-muted transition duration-150 sm:text-sm " +
   "hover:border-ink hover:text-ink " +
   "has-[:checked]:border-ink has-[:checked]:bg-ink/[0.06] has-[:checked]:font-medium " +
   "has-[:checked]:text-ink " +
@@ -153,7 +156,7 @@ export function ReviewForm({
   // <form> and its useForm instance stay mounted, so react-hook-form keeps
   // every value while collapsed and hands them back on expand.
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
       {isCollapsed ? (
         <div className="summary-in flex items-center justify-between gap-3 rounded-edge border border-rule bg-white px-4 py-3">
           <p className="truncate text-sm text-ink-muted">{summary}</p>
@@ -184,7 +187,7 @@ export function ReviewForm({
               placeholder="Trattoria Bella, New York"
               aria-invalid={errors.venue_name ? true : undefined}
               aria-describedby={errors.venue_name ? venueErrorId : undefined}
-              className={fieldClass("mt-1.5", Boolean(errors.venue_name))}
+              className={fieldClass("mt-1", Boolean(errors.venue_name))}
               {...register("venue_name")}
             />
             {errors.venue_name && (
@@ -209,7 +212,7 @@ export function ReviewForm({
                 replaces it. pr-10 clears the text; the box keeps its size. */}
             <select
               id="category"
-              className={`${fieldClass("mt-1.5")} appearance-none bg-[url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2020%2020'%20fill='none'%20stroke='%238a8681'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%208l4%204%204-4'/%3E%3C/svg%3E")] bg-[length:1.25rem_1.25rem] bg-[right_0.65rem_center] bg-no-repeat pr-10`}
+              className={`${fieldClass("mt-1")} appearance-none bg-[url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2020%2020'%20fill='none'%20stroke='%238a8681'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%208l4%204%204-4'/%3E%3C/svg%3E")] bg-[length:1.25rem_1.25rem] bg-[right_0.65rem_center] bg-no-repeat pr-10`}
               {...register("category")}
             >
               {VENUE_CATEGORIES.map((value) => (
@@ -229,11 +232,11 @@ export function ReviewForm({
             </label>
             <textarea
               id="liked"
-              rows={3}
+              rows={2}
               placeholder="Homemade pasta, very friendly welcome"
               aria-invalid={errors.liked ? true : undefined}
               aria-describedby={pairNoteId}
-              className={`${fieldClass("mt-1.5", Boolean(errors.liked))} resize-y leading-relaxed`}
+              className={`${fieldClass("mt-1", Boolean(errors.liked))} resize-y leading-relaxed`}
               {...register("liked")}
             />
           </div>
@@ -247,11 +250,11 @@ export function ReviewForm({
             </label>
             <textarea
               id="disliked"
-              rows={3}
+              rows={2}
               placeholder="Waited 40 minutes for the starter"
               aria-invalid={errors.liked ? true : undefined}
               aria-describedby={pairNoteId}
-              className={`${fieldClass("mt-1.5", Boolean(errors.liked))} resize-y leading-relaxed`}
+              className={`${fieldClass("mt-1", Boolean(errors.liked))} resize-y leading-relaxed`}
               {...register("disliked")}
             />
             {/* The refine rule in schema.ts attaches its message to `liked`,
@@ -272,7 +275,7 @@ export function ReviewForm({
             )}
           </div>
 
-          <div className="border-t border-rule pt-4">
+          <div className="border-t border-rule pt-3">
             <button
               type="button"
               onClick={() => setShowSuggestions((v) => !v)}
@@ -300,7 +303,7 @@ export function ReviewForm({
           {/* Perspective and tone belong together — they shape how the review
               is written, not what it says. Without the rule the form was seven
               blocks at one pitch, required and optional looking alike. */}
-          <div className="space-y-4 border-t border-rule pt-4">
+          <div className="space-y-3 border-t border-rule pt-3">
             <div>
               <span id={perspectiveLabelId} className={GROUP_LABEL}>
                 Point of view
@@ -311,7 +314,7 @@ export function ReviewForm({
               <div
                 role="radiogroup"
                 aria-labelledby={perspectiveLabelId}
-                className="mt-1.5 grid grid-cols-3 gap-2"
+                className="mt-1 grid grid-cols-3 gap-2"
               >
                 {PERSPECTIVES.map((value) => (
                   <label key={value} className={`${CHIP} px-2 text-center`}>
@@ -335,7 +338,7 @@ export function ReviewForm({
               <div
                 role="radiogroup"
                 aria-labelledby={toneLabelId}
-                className="mt-1.5 grid grid-cols-3 gap-2"
+                className="mt-1 grid grid-cols-3 gap-2"
               >
                 {TONES.map((value) => (
                   <label key={value} className={CHIP}>

@@ -123,16 +123,16 @@ export default function App() {
   // A masthead, not a hero: the name in the text face, the promise in the
   // interface face, a rule closing the block.
   return (
-    <main className="min-h-dvh bg-paper p-6">
+    <main className="min-h-dvh bg-paper p-4 sm:px-6 sm:py-5">
       <div className="mx-auto max-w-2xl">
-        <h1 className="font-serif text-[2rem] leading-none font-medium tracking-tight text-ink">
+        <h1 className="font-serif text-2xl leading-none font-medium tracking-tight text-ink sm:text-[2rem]">
           FairRate
         </h1>
-        <p className="mt-2 border-b border-rule pb-5 text-sm text-ink-muted">
+        <p className="mt-2 border-b border-rule pb-3 text-sm text-ink-muted">
           Tell us how it was — we'll write a fair review from it.
         </p>
 
-        <div className="mt-6">
+        <div className="mt-4">
           <ReviewForm
             onSubmit={handleSubmit}
             isLoading={state.status === "loading"}
