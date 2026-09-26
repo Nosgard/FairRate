@@ -11,11 +11,29 @@ from pydantic import ValidationError
 
 from app.core.exceptions import InvalidLlmOutputError, LlmUnavailableError
 from app.core.models import GeneratedReview, LlmReviewOutput, ReviewInput
-from app.core.prompt import PromptBuilder
+from app.core.prompt import PromptBuilder, stars_for
 
 # Local models on CPU hardware can take 30-90 seconds for one review.
 # httpx's default timeout (5s) would abort almost every real request.
 TIMEOUT_SECONDS = 120.0
+
+# Ollama's own defaults apply to whatever the Modelfile leaves unset, and
+# qwen2.5 sets nothing.
+#
+# num_ctx: the default 2048 truncates the system prompt, and the model then
+# invents. 8192 holds the longest allowed input plus the answer.
+#
+# temperature / top_p / min_p: room to say the same facts differently, which
+# is what regenerate is for. top_p 1.0 with a min_p floor halved the
+# phrasing overlap between repeats; higher temperature buys no more variety
+# and starts leaking names.
+OPTIONS = {
+    "num_ctx": 8192,
+    "temperature": 0.9,
+    "top_p": 1.0,
+    "min_p": 0.02,
+    "repeat_penalty": 1.05,
+}
 
 
 class OllamaGenerator:
@@ -25,11 +43,11 @@ class OllamaGenerator:
         self,
         base_url: str,
         model: str,
-        prompt_builder: PromptBuilder | None = None,
+        prompt_builder: PromptBuilder,
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._model = model
-        self._prompts = prompt_builder or PromptBuilder()
+        self._prompts = prompt_builder
 
     async def _call_model(self, request: ReviewInput) -> str:
         """Send the prompt to Ollama and return the raw text response"""
@@ -37,11 +55,14 @@ class OllamaGenerator:
             "model": self._model,
             "system": self._prompts.system_prompt,
             "prompt": self._prompts.build_user_message(request),
-            # Forces syntactically valid JSON at the Ollama level — the
-            # main defence against smaller models producing malformed
-            # output. Anthropic's API has no equivalent for this.
-            "format": "json",
+            # The schema itself, not just "json". Ollama constrains decoding
+            # to it, so a wrong enum value or a missing field cannot be
+            # produced at all, where "json" only guaranteed matching braces.
+            # Taken from the model that validates the result, so prompt and
+            # validation cannot drift apart.
+            "format": LlmReviewOutput.model_json_schema(),
             "stream": False,
+            "options": OPTIONS,
         }
 
         try:
@@ -70,7 +91,7 @@ class OllamaGenerator:
         # This is the layer AnthropicGenerator doesn't need.
         text = envelope.get("response", "")
         if not text:
-            raise InvalidLlmOutputError("Ollama returned not content")
+            raise InvalidLlmOutputError("Ollama returned no content")
 
         return str(text)
 
@@ -92,7 +113,7 @@ class OllamaGenerator:
             return LlmReviewOutput.model_validate(payload)
         except ValidationError as exc:
             raise InvalidLlmOutputError(
-                "Model return JSON that does not match the expected shape"
+                "Model returned JSON that does not match the expected shape"
             ) from exc
 
     async def generate(self, request: ReviewInput) -> GeneratedReview:
@@ -107,6 +128,6 @@ class OllamaGenerator:
             category=request.category,
             review=parsed.review,
             headline=parsed.headline,
-            suggested_rating=parsed.suggested_rating,
+            suggested_rating=stars_for(request, parsed.complaint_weight),
             omissions=parsed.omissions,
         )

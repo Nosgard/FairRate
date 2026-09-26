@@ -138,9 +138,21 @@ class LlmReviewOutput(BaseModel):
     """Raw structure returned by the language model. Parsed and validated here.
 
     Deliberately separate from GeneratedReview: this model can change when
-    the prompt changes, without breaking the public API contract."""
+    the prompt changes, without breaking the public API contract.
 
-    review: Annotated[str, Field(min_length=40, max_length=3000)]
-    headline: Annotated[str, Field(max_length=80)] | None = None
-    suggested_rating: Annotated[int, Field(ge=1, le=5)]
-    omissions: list[Omission] = []
+    This model is also handed to Ollama as the output schema, so every
+    constraint here is enforced during decoding, not just checked after."""
+
+    # First because the grammar enforces order: removals are settled before
+    # the review exists. Bounded, or the array repeats until the JSON
+    # truncates.
+    omissions: Annotated[list[Omission], Field(default_factory=list, max_length=6)]
+    # Only guards against an empty string; a high floor made the model pad
+    # "Good pizza." to reach it.
+    review: Annotated[str, Field(min_length=15, max_length=3000)]
+    # Mandatory unlike on GeneratedReview: given the option, the model
+    # leaves it out.
+    headline: Annotated[str, Field(min_length=10, max_length=80)]
+    # No stars are asked for; stars_for works them out from this. After the
+    # review text, so it cannot steer a word of it.
+    complaint_weight: ComplaintWeight
