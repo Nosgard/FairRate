@@ -67,6 +67,18 @@ class OmissionType(StrEnum):
     INSTRUCTION_ATTEMPT = "instruction_attempt"
 
 
+class ComplaintWeight(StrEnum):
+    """How much the worst thing the guest held against the place weighs.
+
+    The stars follow from this. Three steps, not four: a distinction the
+    model cannot make is not a distinction."""
+
+    NONE = "none"
+    MINOR = "minor"
+    REAL = "real"
+    HARMFUL = "harmful"
+
+
 class ReviewInput(BaseModel):
     """Validated form input. The only entry point for user data."""
 
@@ -116,7 +128,7 @@ class GeneratedReview(BaseModel):
     created_at: datetime
     venue_name: str
     category: VenueCategory
-    review: Annotated[str, Field(min_length=40, max_length=3000)]
+    review: Annotated[str, Field(min_length=15, max_length=3000)]
     headline: Annotated[str, Field(max_length=80)] | None = None
     suggested_rating: Annotated[int, Field(ge=1, le=5)]
     omissions: list[Omission] = []
