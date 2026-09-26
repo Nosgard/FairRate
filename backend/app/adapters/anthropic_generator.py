@@ -14,9 +14,7 @@ from app.core.models import GeneratedReview, LlmReviewOutput, ReviewInput
 from app.core.prompt import PromptBuilder, stars_for
 
 # The schema allows a 3000-character review plus up to six omissions,
-# which with the JSON envelope runs well past a thousand tokens. At the
-# old 1024 a long review was truncated mid-string, and truncated JSON
-# fails validation rather than arriving short.
+# which with the JSON envelope runs well past a thousand tokens.
 MAX_TOKENS = 4000
 
 
@@ -84,9 +82,7 @@ class AnthropicGenerator:
         if response.stop_reason == "refusal":
             raise InvalidLlmOutputError("Model refused to answer")
         if response.stop_reason == "max_tokens":
-            raise InvalidLlmOutputError(
-                "Model output was cut off at max_tokens"
-            )
+            raise InvalidLlmOutputError("Model output was cut off at max_tokens")
 
         parts = [block.text for block in response.content if block.type == "text"]
         if not parts:
