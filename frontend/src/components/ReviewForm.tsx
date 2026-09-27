@@ -2,16 +2,17 @@
  *  Everything about calling the backend lives in useReviewGeneration. */
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useId, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import {
   TONES,
   PERSPECTIVES,
   VENUE_CATEGORIES,
-  reviewFormSchema,
+  createReviewFormSchema,
 } from "../lib/schema";
 import type { ReviewFormValues } from "../lib/schema";
+import { useLanguage } from "../lib/i18n/language";
 
 interface ReviewFormProps {
   onSubmit: (values: ReviewFormValues) => void;
@@ -24,33 +25,6 @@ interface ReviewFormProps {
   isCollapsed: boolean;
   onExpand: () => void;
 }
-
-const CATEGORY_LABELS: Record<(typeof VENUE_CATEGORIES)[number], string> = {
-  restaurant: "Restaurant",
-  cafe: "Café",
-  bar: "Bar",
-  hotel: "Hotel",
-  cinema: "Cinema",
-  theatre: "Theatre",
-  museum: "Museum",
-  shop: "Shop",
-  service: "Service",
-  other: "Other",
-};
-
-const PERSPECTIVE_LABELS: Record<(typeof PERSPECTIVES)[number], string> = {
-  impersonal: "Impersonal",
-  i: "I",
-  we: "We",
-};
-
-/** Written out rather than left to CSS `capitalize`, so the spoken label
- *  matches the visible one. */
-const TONE_LABELS: Record<(typeof TONES)[number], string> = {
-  neutral: "Neutral",
-  friendly: "Friendly",
-  concise: "Concise",
-};
 
 /** Shared by all five inputs. White against the paper ground: white means
  *  "write here" throughout this app. Margins stay out — one textarea needs
@@ -109,13 +83,20 @@ export function ReviewForm({
   isCollapsed,
   onExpand,
 }: ReviewFormProps) {
+  const { copy } = useLanguage();
+
+  // Rebuilt per language: the rules never change, but the messages they
+  // carry are shown to the user and have to follow the interface.
+  const schema = useMemo(() => createReviewFormSchema(copy.validation), [copy]);
+
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors },
+    trigger,
+    formState: { errors, isSubmitted },
   } = useForm<ReviewFormValues>({
-    resolver: zodResolver(reviewFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       venue_name: "",
       category: "other",
@@ -126,6 +107,13 @@ export function ReviewForm({
       perspective: "impersonal",
     },
   });
+
+  // A message already on screen was built from the previous dictionary.
+  // Only worth re-running once the form has been submitted; before that
+  // there is nothing on screen to re-translate.
+  useEffect(() => {
+    if (isSubmitted) void trigger();
+  }, [schema, isSubmitted, trigger]);
 
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -146,8 +134,8 @@ export function ReviewForm({
 
   const summary = [
     venueName.trim(),
-    CATEGORY_LABELS[category],
-    PERSPECTIVE_LABELS[perspective],
+    copy.category[category],
+    copy.perspective[perspective],
   ]
     .filter(Boolean)
     .join(", ");
@@ -168,7 +156,7 @@ export function ReviewForm({
             onClick={onExpand}
             className="-my-1.5 shrink-0 cursor-pointer px-1 py-1.5 text-sm font-medium text-ink underline-offset-2 transition hover:underline"
           >
-            Edit inputs
+            {copy.form.editInputs}
           </button>
         </div>
       ) : (
@@ -178,13 +166,15 @@ export function ReviewForm({
               htmlFor="venue_name"
               className="block text-sm font-medium text-ink"
             >
-              Which place are you reviewing?{" "}
-              <span className="font-normal text-ink-muted">(optional)</span>
+              {copy.form.venueLabel}{" "}
+              <span className="font-normal text-ink-muted">
+                {copy.form.optional}
+              </span>
             </label>
             <input
               id="venue_name"
               type="text"
-              placeholder="Trattoria Bella, New York"
+              placeholder={copy.form.venuePlaceholder}
               aria-invalid={errors.venue_name ? true : undefined}
               aria-describedby={errors.venue_name ? venueErrorId : undefined}
               className={fieldClass("mt-1", Boolean(errors.venue_name))}
@@ -206,7 +196,7 @@ export function ReviewForm({
               htmlFor="category"
               className="block text-sm font-medium text-ink"
             >
-              Type of place
+              {copy.form.categoryLabel}
             </label>
             {/* The OS-drawn arrow ignores the palette, so an inline chevron
                 replaces it. pr-10 clears the text; the box keeps its size. */}
@@ -217,7 +207,7 @@ export function ReviewForm({
             >
               {VENUE_CATEGORIES.map((value) => (
                 <option key={value} value={value}>
-                  {CATEGORY_LABELS[value]}
+                  {copy.category[value]}
                 </option>
               ))}
             </select>
@@ -228,12 +218,12 @@ export function ReviewForm({
               htmlFor="liked"
               className="block text-sm font-medium text-ink"
             >
-              What did you like?
+              {copy.form.likedLabel}
             </label>
             <textarea
               id="liked"
               rows={2}
-              placeholder="Homemade pasta, very friendly welcome"
+              placeholder={copy.form.likedPlaceholder}
               aria-invalid={errors.liked ? true : undefined}
               aria-describedby={pairNoteId}
               className={`${fieldClass("mt-1", Boolean(errors.liked))} resize-y leading-relaxed`}
@@ -246,12 +236,12 @@ export function ReviewForm({
               htmlFor="disliked"
               className="block text-sm font-medium text-ink"
             >
-              What bothered you?
+              {copy.form.dislikedLabel}
             </label>
             <textarea
               id="disliked"
               rows={2}
-              placeholder="Waited 40 minutes for the starter"
+              placeholder={copy.form.dislikedPlaceholder}
               aria-invalid={errors.liked ? true : undefined}
               aria-describedby={pairNoteId}
               className={`${fieldClass("mt-1", Boolean(errors.liked))} resize-y leading-relaxed`}
@@ -270,7 +260,7 @@ export function ReviewForm({
               </p>
             ) : (
               <p id={pairNoteId} className="mt-1 text-sm text-ink-muted">
-                One of these two fields is enough.
+                {copy.form.pairNote}
               </p>
             )}
           </div>
@@ -284,16 +274,16 @@ export function ReviewForm({
               className="-my-1 cursor-pointer py-1 text-sm text-ink-muted underline decoration-edge underline-offset-2 transition hover:text-ink hover:decoration-ink"
             >
               {showSuggestions
-                ? "Hide the suggestion field"
-                : "Add a suggestion for improvement"}{" "}
-              <span className="text-ink-muted">(optional)</span>
+                ? copy.form.suggestionHide
+                : copy.form.suggestionShow}{" "}
+              <span className="text-ink-muted">{copy.form.optional}</span>
             </button>
             {showSuggestions && (
               <textarea
                 id={suggestionsId}
                 rows={2}
-                placeholder="One more person on weekends"
-                aria-label="Suggestion for improvement"
+                placeholder={copy.form.suggestionPlaceholder}
+                aria-label={copy.form.suggestionLabel}
                 className={`${fieldClass("mt-2")} resize-y leading-relaxed`}
                 {...register("suggestions")}
               />
@@ -306,7 +296,7 @@ export function ReviewForm({
           <div className="space-y-3 border-t border-rule pt-3">
             <div>
               <span id={perspectiveLabelId} className={GROUP_LABEL}>
-                Point of view
+                {copy.form.perspectiveLabel}
               </span>
               {/* role="radiogroup" rather than a fieldset: it names the group
                   for screen readers without a fieldset's own box model, so
@@ -321,11 +311,11 @@ export function ReviewForm({
                     <input
                       type="radio"
                       value={value}
-                      aria-label={PERSPECTIVE_LABELS[value]}
+                      aria-label={copy.perspective[value]}
                       className="sr-only"
                       {...register("perspective")}
                     />
-                    {PERSPECTIVE_LABELS[value]}
+                    {copy.perspective[value]}
                   </label>
                 ))}
               </div>
@@ -333,7 +323,7 @@ export function ReviewForm({
 
             <div>
               <span id={toneLabelId} className={GROUP_LABEL}>
-                Tone
+                {copy.form.toneLabel}
               </span>
               <div
                 role="radiogroup"
@@ -345,11 +335,11 @@ export function ReviewForm({
                     <input
                       type="radio"
                       value={value}
-                      aria-label={TONE_LABELS[value]}
+                      aria-label={copy.tone[value]}
                       className="sr-only"
                       {...register("tone")}
                     />
-                    {TONE_LABELS[value]}
+                    {copy.tone[value]}
                   </label>
                 ))}
               </div>
@@ -382,7 +372,7 @@ export function ReviewForm({
             <path d="M18 2Q18.6 4.4 21 5Q18.6 5.6 18 8Q17.4 5.6 15 5Q17.4 4.4 18 2Z" />
           </svg>
         )}
-        {isLoading ? "Writing your review…" : "Create review"}
+        {isLoading ? copy.status.writing : copy.form.submit}
       </button>
     </form>
   );

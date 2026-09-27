@@ -21,22 +21,37 @@ export const TONES = ["neutral", "friendly", "concise"] as const;
 
 export const PERSPECTIVES = ["impersonal", "i", "we"] as const;
 
-export const reviewFormSchema = z
-  .object({
-    venue_name: z.string().trim().max(120, "That name is too long."),
-    category: z.enum(VENUE_CATEGORIES),
-    liked: z.string().trim().max(2000, "That is a bit too long."),
-    disliked: z.string().trim().max(2000, "That is a bit too long."),
-    suggestions: z.string().trim().max(1000, "That is a bit too long."),
-    tone: z.enum(TONES),
-    perspective: z.enum(PERSPECTIVES),
-  })
-  // Mirrors require_content in the backend: without either field there is
-  // nothing to review. Attached to `liked` so the message appears at a
-  // field rather than floating above the form.
-  .refine((data) => data.liked.length > 0 || data.disliked.length > 0, {
-    message: "Please fill in at least one of these two fields.",
-    path: ["liked"],
-  });
+/** The messages the rules below put on screen. Declared here rather than
+ *  imported from the dictionary so the schema stays free of the i18n layer;
+ *  the dictionary implements this shape instead. */
+export interface ValidationMessages {
+  venueTooLong: string;
+  tooLong: string;
+  needOneField: string;
+}
 
-export type ReviewFormValues = z.infer<typeof reviewFormSchema>;
+/** Built per language rather than once at module load: the messages are
+ *  shown to the user, so they have to follow the interface. */
+export function createReviewFormSchema(messages: ValidationMessages) {
+  return z
+    .object({
+      venue_name: z.string().trim().max(120, messages.venueTooLong),
+      category: z.enum(VENUE_CATEGORIES),
+      liked: z.string().trim().max(2000, messages.tooLong),
+      disliked: z.string().trim().max(2000, messages.tooLong),
+      suggestions: z.string().trim().max(1000, messages.tooLong),
+      tone: z.enum(TONES),
+      perspective: z.enum(PERSPECTIVES),
+    })
+    // Mirrors require_content in the backend: without either field there is
+    // nothing to review. Attached to `liked` so the message appears at a
+    // field rather than floating above the form.
+    .refine((data) => data.liked.length > 0 || data.disliked.length > 0, {
+      message: messages.needOneField,
+      path: ["liked"],
+    });
+}
+
+export type ReviewFormValues = z.infer<
+  ReturnType<typeof createReviewFormSchema>
+>;

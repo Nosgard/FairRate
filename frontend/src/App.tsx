@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { LanguageChoice } from "./components/LanguageChoice";
-import type { LanguageCode } from "./components/LanguageChoice";
+import { reviewLanguage, useLanguage } from "./lib/i18n/language";
 import { ReviewForm } from "./components/ReviewForm";
 import { ReviewResult } from "./components/ReviewResult";
 import { useCountDown } from "./hooks/useCountDown";
@@ -53,15 +53,13 @@ function ResultPanel({
 }
 
 export default function App() {
+  const { language } = useLanguage();
   const { state, generate, regenerate } = useReviewGeneration();
 
   // Whether the user asked to edit their input again while a result is on
   // screen. Only this override is stored — the collapse itself is derived
   // below, so the two can never drift apart.
   const [isEditing, setIsEditing] = useState(false);
-
-  // The interface offers four languages — English ("en") by default.
-  const [language, setLanguage] = useState<LanguageCode>("en");
 
   // A request in flight collapses the form just as a finished result does:
   // as soon as there is something to look at below, the inputs give up the
@@ -97,9 +95,10 @@ export default function App() {
   }, [state.status]);
 
   /** Bridges form values to the API request shape. The two are close but
-   *  not identical: `language` is fixed for now and never asked for in the
-   *  form. Keeping the conversion explicit means a change on either side
-   *  surfaces here, not silently at runtime. */
+   *  not identical: `language` names the language the review is written in,
+   *  which reviewLanguage derives from the interface language. Keeping the
+   *  conversion explicit means a change on either side surfaces here, not
+   *  silently at runtime. */
   function handleSubmit(values: ReviewFormValues) {
     // A fresh submission ends any manual edit, so the next result collapses
     // the form again rather than staying open behind it.
@@ -112,7 +111,7 @@ export default function App() {
       suggestions: values.suggestions,
       tone: values.tone,
       perspective: values.perspective,
-      language: "en",
+      language: reviewLanguage(language),
     });
   }
 
@@ -135,7 +134,7 @@ export default function App() {
           <h1 className="font-serif text-[1.75rem] leading-none font-medium tracking-tight text-ink sm:text-[2.5rem]">
             FairRate
           </h1>
-          <LanguageChoice value={language} onChange={setLanguage} />
+          <LanguageChoice />
         </div>
       </header>
 

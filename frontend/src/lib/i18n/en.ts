@@ -1,0 +1,83 @@
+import type { Copy } from "./copy";
+
+export const en: Copy = {
+  language: { legend: "Language" },
+  form: {
+    venueLabel: "Which place are you reviewing?",
+    optional: "(optional)",
+    venuePlaceholder: "Trattoria Bella, New York",
+    categoryLabel: "Type of place",
+    likedLabel: "What did you like?",
+    likedPlaceholder: "Homemade pasta, very friendly welcome",
+    dislikedLabel: "What bothered you?",
+    dislikedPlaceholder: "Waited 40 minutes for the starter",
+    pairNote: "One of these two fields is enough.",
+    suggestionShow: "Add a suggestion for improvement",
+    suggestionHide: "Hide the suggestion field",
+    suggestionPlaceholder: "One more person on weekends",
+    suggestionLabel: "Suggestion for improvement",
+    perspectiveLabel: "Point of view",
+    toneLabel: "Tone",
+    submit: "Create review",
+    editInputs: "Edit inputs",
+  },
+  status: {
+    writing: "Writing your review…",
+    takesAMoment: "This usually takes a few seconds.",
+  },
+  result: {
+    heading: "Your review",
+    edited: "edited",
+    ratingLabel: (rating) => `Suggested rating: ${rating} out of 5`,
+    ratingShort: (rating) => `${rating} of 5`,
+    omissionsHeading: "What we left out",
+    regenerate: "Generate again",
+    regenerateEdited: "Generate again — replaces your edited text",
+    edit: "Edit text",
+    doneEditing: "Done editing",
+    revert: "Revert",
+    characters: (count) =>
+      count === 1 ? "1 character" : `${count} characters`,
+  },
+  copyButton: {
+    copy: "Copy",
+    copied: "Copied",
+    unavailable: "Copying is unavailable here — select the text and press Ctrl+C.",
+  },
+  error: {
+    title: "That didn't work",
+    coolingTitle: "A short pause is needed",
+    retryIn: (seconds) => `Try again in ${seconds}s.`,
+    inputKept: "Your input has been kept.",
+    retry: "Try again",
+    code: (code) => `Error code: ${code}`,
+    byCode: {
+      rate_limited: "Too many requests in a short time.",
+      llm_unavailable:
+        "The service is temporarily unreachable. Please try again shortly.",
+      llm_invalid_output:
+        "The review could not be generated. Please try again.",
+      content_rejected: "This input could not be turned into a review.",
+      network_error: "Could not reach the server. Please check your connection.",
+    },
+  },
+  category: {
+    restaurant: "Restaurant",
+    cafe: "Café",
+    bar: "Bar",
+    hotel: "Hotel",
+    cinema: "Cinema",
+    theatre: "Theatre",
+    museum: "Museum",
+    shop: "Shop",
+    service: "Service",
+    other: "Other",
+  },
+  perspective: { impersonal: "Impersonal", i: "I", we: "We" },
+  tone: { neutral: "Neutral", friendly: "Friendly", concise: "Concise" },
+  validation: {
+    venueTooLong: "That name is too long.",
+    tooLong: "That is a bit too long.",
+    needOneField: "Please fill in at least one of these two fields.",
+  },
+};

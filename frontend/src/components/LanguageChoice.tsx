@@ -1,12 +1,4 @@
-/** The four languages the interface offers, each written in its own name. */
-const LANGUAGES = [
-  { code: "en", name: "English" },
-  { code: "de", name: "Deutsch" },
-  { code: "fr", name: "Français" },
-  { code: "es", name: "Español" },
-] as const;
-
-export type LanguageCode = (typeof LANGUAGES)[number]["code"];
+import { LANGUAGES, useLanguage } from "../lib/i18n/language";
 
 /** The colour behaviour of the chips in the form — muted until hovered,
  *  ink and a tint once chosen — but without their border. The hero is a
@@ -22,18 +14,14 @@ const OPTION =
   "forced-colors:has-[:checked]:outline forced-colors:has-[:checked]:outline-1 " +
   "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ink/15";
 
-export function LanguageChoice({
-  value,
-  onChange,
-}: {
-  value: LanguageCode;
-  onChange: (code: LanguageCode) => void;
-}) {
+export function LanguageChoice() {
+  const { language, setLanguage, copy } = useLanguage();
+
   return (
     <fieldset className="mt-3">
       {/* The group needs a name for screen readers, but not the space a
           drawn one would take. */}
-      <legend className="sr-only">Review language</legend>
+      <legend className="sr-only">{copy.language.legend}</legend>
       {/* The negative margin cancels the first option's own padding, so its
           text starts on the wordmark's left edge rather than beside it. */}
       <div className="-ml-2.5 flex flex-wrap gap-0.5">
@@ -43,11 +31,14 @@ export function LanguageChoice({
               type="radio"
               name="language"
               value={code}
-              checked={value === code}
-              onChange={() => onChange(code)}
+              checked={language === code}
+              onChange={() => setLanguage(code)}
               className="sr-only"
             />
-            {name}
+            {/* The name stays in its own language whatever is selected —
+                translating it would hide the option from the person who
+                needs it. */}
+            <span lang={code}>{name}</span>
           </label>
         ))}
       </div>
