@@ -485,12 +485,102 @@ _DE_NOISE = frozenset(
     }
 )
 
+_FR_NOISE = frozenset(
+    {
+        "alors",
+        "au",
+        "aussi",
+        "autre",
+        "aux",
+        "avait",
+        "avec",
+        "avoir",
+        "bien",
+        "car",
+        "ce",
+        "cela",
+        "ces",
+        "cet",
+        "cette",
+        "chaque",
+        "comme",
+        "dans",
+        "de",
+        "des",
+        "donc",
+        "du",
+        "déjà",
+        "elle",
+        "elles",
+        "en",
+        "encore",
+        "est",
+        "et",
+        "eux",
+        "fait",
+        "ici",
+        "il",
+        "ils",
+        "je",
+        "la",
+        "le",
+        "les",
+        "leur",
+        "lui",
+        "ma",
+        "mais",
+        "mes",
+        "moi",
+        "mon",
+        "ne",
+        "nos",
+        "notre",
+        "nous",
+        "on",
+        "ont",
+        "ou",
+        "par",
+        "pas",
+        "peu",
+        "plus",
+        "pour",
+        "que",
+        "quel",
+        "qui",
+        "sa",
+        "sans",
+        "se",
+        "ses",
+        "son",
+        "sont",
+        "sur",
+        "ta",
+        "tes",
+        "toi",
+        "ton",
+        "tous",
+        "tout",
+        "très",
+        "tu",
+        "un",
+        "une",
+        "vos",
+        "votre",
+        "vous",
+        "était",
+        "été",
+        "être",
+    }
+)
+
+
 # Fields are usually lists: "Delicious burgers, fresh ingredients, no
 # artificial flavours, plastic-free spoons" is four things, not one. The
 # conjunction only splits when no comma follows it, so it joins the last two
 # rather than cutting a clause in half.
 _EN_ITEMS = re.compile(r"[,;]|\band\b(?=[^,;]*$)", re.I)
 _DE_ITEMS = re.compile(r"[,;]|\bund\b(?=[^,;]*$)", re.I)
+_FR_ITEMS = re.compile(r"[,;]|\bet\b(?=[^,;]*$)", re.I)
 
 
 @dataclass(frozen=True)
@@ -507,6 +597,7 @@ class LanguageRules:
 _RULES: dict[Language, LanguageRules] = {
     Language.EN: LanguageRules(noise=_EN_NOISE, items=_EN_ITEMS),
     Language.DE: LanguageRules(noise=_DE_NOISE, items=_DE_ITEMS),
+    Language.FR: LanguageRules(noise=_FR_NOISE, items=_FR_ITEMS),
 }
 
 

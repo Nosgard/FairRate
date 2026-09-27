@@ -32,6 +32,7 @@ class PerspectiveSchema(StrEnum):
 class LanguageSchema(StrEnum):
     DE = "de"
     EN = "en"
+    FR = "fr"
 
 
 class ReviewRequestSchema(BaseModel):

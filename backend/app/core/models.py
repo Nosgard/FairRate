@@ -56,6 +56,7 @@ class Perspective(StrEnum):
 class Language(StrEnum):
     DE = "de"
     EN = "en"
+    FR = "fr"
 
 
 class OmissionType(StrEnum):

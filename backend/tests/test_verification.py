@@ -703,6 +703,17 @@ def test_splits_a_german_field_at_its_own_conjunction() -> None:
     ]
 
 
+def test_splits_a_french_field_at_its_own_conjunction() -> None:
+    """The table only guarantees an entry exists, not that its pattern is
+    right — a typo here would move French star ratings unnoticed."""
+    from app.core.verification import split_items
+
+    assert split_items("Pâtes maison et accueil chaleureux", Language.FR) == [
+        "Pâtes maison",
+        "accueil chaleureux",
+    ]
+
+
 def test_every_language_has_its_own_rules() -> None:
     """Adding a language to the enum without its noise words and splitter
     would silently apply English ones to it."""
