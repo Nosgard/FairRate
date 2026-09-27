@@ -55,7 +55,7 @@ export interface components {
          * LanguageSchema
          * @enum {string}
          */
-        LanguageSchema: "de" | "en" | "fr";
+        LanguageSchema: "de" | "en" | "fr" | "es";
         /**
          * Omission
          * @description A part of the input that was deliberately left out.

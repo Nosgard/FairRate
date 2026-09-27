@@ -33,6 +33,7 @@ class LanguageSchema(StrEnum):
     DE = "de"
     EN = "en"
     FR = "fr"
+    ES = "es"
 
 
 class ReviewRequestSchema(BaseModel):

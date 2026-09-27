@@ -57,6 +57,7 @@ class Language(StrEnum):
     DE = "de"
     EN = "en"
     FR = "fr"
+    ES = "es"
 
 
 class OmissionType(StrEnum):

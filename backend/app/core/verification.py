@@ -574,6 +574,110 @@ _FR_NOISE = frozenset(
 )
 
 
+_ES_NOISE = frozenset(
+    {
+        "al",
+        "algo",
+        "ante",
+        "antes",
+        "aquel",
+        "así",
+        "aun",
+        "aunque",
+        "cada",
+        "casi",
+        "como",
+        "con",
+        "contra",
+        "cual",
+        "cuando",
+        "de",
+        "del",
+        "desde",
+        "donde",
+        "dos",
+        "el",
+        "ella",
+        "ellas",
+        "ellos",
+        "en",
+        "entre",
+        "era",
+        "eran",
+        "es",
+        "esa",
+        "ese",
+        "eso",
+        "esta",
+        "estaba",
+        "estaban",
+        "estos",
+        "está",
+        "están",
+        "este",
+        "esto",
+        "fue",
+        "fueron",
+        "ha",
+        "han",
+        "hasta",
+        "hay",
+        "la",
+        "las",
+        "le",
+        "les",
+        "lo",
+        "los",
+        "me",
+        "mi",
+        "mis",
+        "mucho",
+        "muy",
+        "más",
+        "nada",
+        "ni",
+        "no",
+        "nos",
+        "nuestra",
+        "nuestro",
+        "nuestros",
+        "otra",
+        "otro",
+        "para",
+        "pero",
+        "poco",
+        "por",
+        "porque",
+        "que",
+        "qué",
+        "se",
+        "sea",
+        "ser",
+        "si",
+        "sin",
+        "sobre",
+        "son",
+        "su",
+        "sus",
+        "también",
+        "tan",
+        "te",
+        "tiene",
+        "todo",
+        "todos",
+        "tu",
+        "tus",
+        "un",
+        "una",
+        "uno",
+        "unos",
+        "ya",
+        "yo",
+        "él",
+    }
+)
+
+
 # Fields are usually lists: "Delicious burgers, fresh ingredients, no
 # artificial flavours, plastic-free spoons" is four things, not one. The
 # conjunction only splits when no comma follows it, so it joins the last two
@@ -581,6 +685,9 @@ _FR_NOISE = frozenset(
 _EN_ITEMS = re.compile(r"[,;]|\band\b(?=[^,;]*$)", re.I)
 _DE_ITEMS = re.compile(r"[,;]|\bund\b(?=[^,;]*$)", re.I)
 _FR_ITEMS = re.compile(r"[,;]|\bet\b(?=[^,;]*$)", re.I)
+# Spanish writes "e" instead of "y" before an i- or hi- word
+# ("pasta casera e ingredientes frescos"), so both count.
+_ES_ITEMS = re.compile(r"[,;]|\b[ye]\b(?=[^,;]*$)", re.I)
 
 
 @dataclass(frozen=True)
@@ -598,6 +705,7 @@ _RULES: dict[Language, LanguageRules] = {
     Language.EN: LanguageRules(noise=_EN_NOISE, items=_EN_ITEMS),
     Language.DE: LanguageRules(noise=_DE_NOISE, items=_DE_ITEMS),
     Language.FR: LanguageRules(noise=_FR_NOISE, items=_FR_ITEMS),
+    Language.ES: LanguageRules(noise=_ES_NOISE, items=_ES_ITEMS),
 }
 
 

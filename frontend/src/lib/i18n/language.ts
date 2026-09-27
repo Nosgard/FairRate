@@ -4,6 +4,7 @@ import type { Language } from "../types";
 import type { Copy } from "./copy";
 import { de } from "./de";
 import { en } from "./en";
+import { es } from "./es";
 import { fr } from "./fr";
 
 /** The languages the switcher offers, in the order it draws them, each
@@ -19,7 +20,7 @@ export type LanguageCode = (typeof LANGUAGES)[number]["code"];
 
 /** The dictionaries that exist. Adding a language means adding its file
  *  here and pointing its code at it below. */
-const DICTIONARIES = { en, de, fr } satisfies Record<string, Copy>;
+const DICTIONARIES = { en, de, fr, es } satisfies Record<string, Copy>;
 
 type Translated = keyof typeof DICTIONARIES;
 
@@ -33,7 +34,7 @@ const RESOLVES_TO: Record<LanguageCode, Translated> = {
   en: "en",
   de: "de",
   fr: "fr",
-  es: "en",
+  es: "es",
 };
 
 export function dictionaryFor(code: LanguageCode): Copy {
@@ -49,7 +50,7 @@ export function documentLanguage(code: LanguageCode): Translated {
 /** The languages the API can write a review in. A set with a compile-time
  *  completeness check: add one to the backend enum and this stops
  *  compiling until it is named here too. */
-const API_LANGUAGES = { de: true, en: true, fr: true } as const satisfies Record<
+const API_LANGUAGES = { de: true, en: true, fr: true, es: true } as const satisfies Record<
   Language,
   true
 >;
