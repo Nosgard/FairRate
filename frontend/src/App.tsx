@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import { LanguageChoice } from "./components/LanguageChoice";
+import type { LanguageCode } from "./components/LanguageChoice";
 import { ReviewForm } from "./components/ReviewForm";
 import { ReviewResult } from "./components/ReviewResult";
 import { useCountDown } from "./hooks/useCountDown";
@@ -57,6 +59,9 @@ export default function App() {
   // screen. Only this override is stored — the collapse itself is derived
   // below, so the two can never drift apart.
   const [isEditing, setIsEditing] = useState(false);
+
+  // The interface offers four languages — English ("en") by default.
+  const [language, setLanguage] = useState<LanguageCode>("en");
 
   // A request in flight collapses the form just as a finished result does:
   // as soon as there is something to look at below, the inputs give up the
@@ -120,19 +125,22 @@ export default function App() {
     regenerate();
   }
 
-  // A masthead, not a hero: the name in the text face, the promise in the
-  // interface face, a rule closing the block.
+  // The hero is a band, not a fill: it carries the name and the language
+  // choice on air and the rule that closes it. Its side padding matches the
+  // column below, so the wordmark's left edge sits on the form's.
   return (
-    <main className="min-h-dvh bg-paper p-4 sm:px-6 sm:py-5">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="font-serif text-2xl leading-none font-medium tracking-tight text-ink sm:text-[2rem]">
-          FairRate
-        </h1>
-        <p className="mt-2 border-b border-rule pb-3 text-sm text-ink-muted">
-          Tell us how it was — we'll write a fair review from it.
-        </p>
+    <div className="min-h-dvh bg-paper">
+      <header className="border-b border-rule px-4 py-6 sm:px-6 sm:py-8">
+        <div className="mx-auto max-w-2xl">
+          <h1 className="font-serif text-[1.75rem] leading-none font-medium tracking-tight text-ink sm:text-[2.5rem]">
+            FairRate
+          </h1>
+          <LanguageChoice value={language} onChange={setLanguage} />
+        </div>
+      </header>
 
-        <div className="mt-4">
+      <main className="px-4 py-5 sm:px-6 sm:py-6">
+        <div className="mx-auto max-w-2xl">
           <ReviewForm
             onSubmit={handleSubmit}
             isLoading={state.status === "loading"}
@@ -140,21 +148,25 @@ export default function App() {
             isCollapsed={isCollapsed}
             onExpand={() => setIsEditing(true)}
           />
-        </div>
 
-        {state.status !== "idle" && (
-          // tabIndex -1 makes the panel focusable for the effect above
-          // without putting it in the tab order. No ring: a box drawn around
-          // the whole card would read as an error.
-          <div ref={panelRef} tabIndex={-1} className="mt-6 focus:outline-none">
-            <ResultPanel
-              state={state}
-              retryIn={retryIn}
-              onRetry={handleRegenerate}
-            />
-          </div>
-        )}
-      </div>
-    </main>
+          {state.status !== "idle" && (
+            // tabIndex -1 makes the panel focusable for the effect above
+            // without putting it in the tab order. No ring: a box drawn
+            // around the whole card would read as an error.
+            <div
+              ref={panelRef}
+              tabIndex={-1}
+              className="mt-6 focus:outline-none"
+            >
+              <ResultPanel
+                state={state}
+                retryIn={retryIn}
+                onRetry={handleRegenerate}
+              />
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }
