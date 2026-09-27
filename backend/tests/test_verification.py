@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
+import pytest
+
 from app.core.models import (
     GeneratedReview,
     Language,
@@ -691,27 +693,34 @@ def test_an_instruction_still_in_the_text_is_a_failed_removal_not_a_lie() -> Non
     assert echoed_omissions(request, result) == []
 
 
-def test_splits_a_german_field_at_its_own_conjunction() -> None:
-    """The splitter decides how many things a guest named, and the count
+@pytest.mark.parametrize(
+    ("language", "field", "expected"),
+    [
+        (Language.EN, "Great pasta and a friendly welcome",
+         ["Great pasta", "a friendly welcome"]),
+        (Language.DE, "Gute Pasta und freundlicher Empfang",
+         ["Gute Pasta", "freundlicher Empfang"]),
+        (Language.FR, "Pâtes maison et accueil chaleureux",
+         ["Pâtes maison", "accueil chaleureux"]),
+        (Language.ES, "Pasta casera y acogida cordial",
+         ["Pasta casera", "acogida cordial"]),
+        # Spanish swaps "y" for "e" before an i- word.
+        (Language.ES, "Pasta casera e ingredientes frescos",
+         ["Pasta casera", "ingredientes frescos"]),
+    ],
+    ids=["en", "de", "fr", "es-y", "es-e"],
+)
+def test_splits_a_field_at_its_own_conjunction(
+    language: Language, field: str, expected: list[str]
+) -> None:
+    """The splitter decides how many things a guest named, and that count
     decides the stars. Reading German "und" as one item cost a review a
-    star: the same notes scored 4 with a comma and 3 with the word."""
+    star: the same notes scored 4 with a comma and 3 with the word. The
+    rules table only guarantees an entry exists, not that its pattern is
+    right, so every language brings a row here."""
     from app.core.verification import split_items
 
-    assert split_items("Gute Pasta und freundlicher Empfang", Language.DE) == [
-        "Gute Pasta",
-        "freundlicher Empfang",
-    ]
-
-
-def test_splits_a_french_field_at_its_own_conjunction() -> None:
-    """The table only guarantees an entry exists, not that its pattern is
-    right — a typo here would move French star ratings unnoticed."""
-    from app.core.verification import split_items
-
-    assert split_items("Pâtes maison et accueil chaleureux", Language.FR) == [
-        "Pâtes maison",
-        "accueil chaleureux",
-    ]
+    assert split_items(field, language) == expected
 
 
 def test_every_language_has_its_own_rules() -> None:
