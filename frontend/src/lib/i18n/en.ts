@@ -23,7 +23,7 @@ export const en: Copy = {
   },
   status: {
     writing: "Writing your review…",
-    takesAMoment: "This usually takes a few seconds.",
+    expectedWait: "This usually takes a few seconds.",
   },
   result: {
     heading: "Your review",

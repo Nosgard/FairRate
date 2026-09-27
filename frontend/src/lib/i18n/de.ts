@@ -28,7 +28,7 @@ export const de: Copy = {
   },
   status: {
     writing: "Bewertung wird geschrieben…",
-    takesAMoment: "Das dauert meist ein paar Sekunden.",
+    expectedWait: "Das dauert meist ein paar Sekunden.",
   },
   result: {
     heading: "Deine Bewertung",

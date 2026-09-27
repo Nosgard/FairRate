@@ -5,6 +5,8 @@
 
 import { useEffect, useState } from "react";
 
+import { useLanguage } from "../lib/i18n/language";
+
 interface CopyButtonProps {
   text: string;
   /** Nothing to copy. Without this an empty review would still report
@@ -13,6 +15,7 @@ interface CopyButtonProps {
 }
 
 export function CopyButton({ text, disabled = false }: CopyButtonProps) {
+  const { copy } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -46,7 +49,7 @@ export function CopyButton({ text, disabled = false }: CopyButtonProps) {
           rows={3}
         />
         <p className="mt-1 text-xs text-ink-muted">
-          Copying is unavailable here — select the text and press Ctrl+C.
+          {copy.copyButton.unavailable}
         </p>
       </div>
     );
@@ -61,7 +64,7 @@ export function CopyButton({ text, disabled = false }: CopyButtonProps) {
       // blocks on a screen read as two main actions.
       className="flex-1 cursor-pointer rounded-edge border border-edge bg-white px-4 py-3 text-base font-medium text-ink transition duration-150 hover:border-ink hover:bg-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/25 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-edge disabled:hover:bg-white"
     >
-      {copied ? "Copied" : "Copy"}
+      {copied ? copy.copyButton.copied : copy.copyButton.copy}
     </button>
   );
 }

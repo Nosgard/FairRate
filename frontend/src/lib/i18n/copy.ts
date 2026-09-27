@@ -44,7 +44,7 @@ export interface Copy {
    *  the same thing about the same request, and one key cannot drift. */
   status: {
     writing: string;
-    takesAMoment: string;
+    expectedWait: string;
   };
   result: {
     heading: string;

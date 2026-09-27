@@ -2,6 +2,8 @@
  *  spinner: they have the shape of the result, so the layout does not
  *  jump when the text arrives. */
 
+import { useLanguage } from "../lib/i18n/language";
+
 interface BarProps {
   width: string;
 }
@@ -17,6 +19,8 @@ function Bar({ width }: BarProps) {
 }
 
 export function LoadingState() {
+  const { copy } = useLanguage();
+
   return (
     <section
       className="rounded-edge border border-rule bg-white p-4 sm:p-5"
@@ -24,7 +28,7 @@ export function LoadingState() {
       aria-live="polite"
     >
       <p className="text-sm font-medium text-ink-muted">
-        Writing your review…
+        {copy.status.writing}
       </p>
 
       <div className="mt-5">
@@ -40,7 +44,7 @@ export function LoadingState() {
       </div>
 
       <p className="mt-5 border-t border-rule pt-4 text-xs text-ink-muted">
-        This usually takes a few seconds.
+        {copy.status.expectedWait}
       </p>
     </section>
   );

@@ -5,6 +5,7 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import { CopyButton } from "./CopyButton";
+import { useLanguage } from "../lib/i18n/language";
 import type { ReviewResponse } from "../lib/types";
 
 interface ReviewResultProps {
@@ -17,10 +18,12 @@ interface ReviewResultProps {
  *  The empty stars take the page's own rule colour rather than a cool grey,
  *  so they sit with the rest of the palette. */
 function Stars({ rating }: { rating: number }) {
+  const { copy } = useLanguage();
+
   return (
     <span
       className="text-lg tracking-wide text-amber-500"
-      aria-label={`Suggested rating: ${rating} out of 5`}
+      aria-label={copy.result.ratingLabel(rating)}
     >
       {"★".repeat(rating)}
       <span className="text-rule">{"★".repeat(5 - rating)}</span>
@@ -57,6 +60,8 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
   // The edit lives here, not in App: it is not part of the request
   // lifecycle that useReviewGeneration owns. A new generation replaces this
   // component (App keys it on review.id), so the draft resets on its own.
+  const { copy } = useLanguage();
+
   const [text, setText] = useState(review.review);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -112,8 +117,12 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
     <section className="rounded-edge border border-rule bg-white p-4 sm:p-5">
       <div className="flex items-baseline justify-between gap-3">
         <div className="flex items-baseline gap-2">
-          <h2 className="text-sm font-medium text-ink-muted">Your review</h2>
-          {isEdited && <span className="text-xs text-ink-muted">edited</span>}
+          <h2 className="text-sm font-medium text-ink-muted">
+            {copy.result.heading}
+          </h2>
+          {isEdited && (
+            <span className="text-xs text-ink-muted">{copy.result.edited}</span>
+          )}
         </div>
         {/* Hidden on phones: the summary row directly above carries the same
             name, and here it only squeezed "Your review" onto two lines. */}
@@ -127,7 +136,7 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
       <div className="mt-3 flex items-center gap-2.5">
         <Stars rating={review.suggested_rating} />
         <span aria-hidden="true" className="text-xs text-ink-muted">
-          {review.suggested_rating} of 5
+          {copy.result.ratingShort(review.suggested_rating)}
         </span>
       </div>
 
@@ -159,7 +168,7 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
                 setText(event.target.value);
                 fitToContent(event.currentTarget);
               }}
-              aria-label="Your review"
+              aria-label={copy.result.heading}
               aria-describedby={counterId}
               className={`${REVIEW_BOX} resize-none bg-white transition duration-150 focus:border-ink focus:ring-2 focus:ring-ink/15 focus:outline-none`}
             />
@@ -176,7 +185,9 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
             the claim covers the generated wording only. */}
           {showChangeBar && (
             <div className="mt-4">
-              <p className="text-sm font-medium text-ink">What we left out</p>
+              <p className="text-sm font-medium text-ink">
+                {copy.result.omissionsHeading}
+              </p>
               <ul className="mt-1 space-y-1">
                 {review.omissions.map((omission, index) => (
                   <li
@@ -197,11 +208,9 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
         <button
           type="button"
           onClick={onRegenerate}
-          aria-label="Generate again"
+          aria-label={copy.result.regenerate}
           title={
-            isEdited
-              ? "Generate again — replaces your edited text"
-              : "Generate again"
+            isEdited ? copy.result.regenerateEdited : copy.result.regenerate
           }
           className="w-12 cursor-pointer rounded-edge border border-edge text-ink-muted transition duration-150 hover:border-ink hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/15"
         >
@@ -218,7 +227,7 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
             aria-controls={textId}
             className={FOOTER_BUTTON}
           >
-            {isEditing ? "Done editing" : "Edit text"}
+            {isEditing ? copy.result.doneEditing : copy.result.edit}
           </button>
           {isEdited && (
             <button
@@ -226,12 +235,12 @@ export function ReviewResult({ review, onRegenerate }: ReviewResultProps) {
               onClick={() => setText(review.review)}
               className={FOOTER_BUTTON}
             >
-              Revert
+              {copy.result.revert}
             </button>
           )}
         </div>
         <span id={counterId} className="text-xs text-ink-muted">
-          {text.length} characters
+          {copy.result.characters(text.length)}
         </span>
       </div>
     </section>
