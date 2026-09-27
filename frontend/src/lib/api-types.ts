@@ -70,7 +70,7 @@ export interface components {
          * @description Reason why part of the user input was not carried over.
          * @enum {string}
          */
-        OmissionType: "insult" | "personal_attack" | "unverifiable_claim" | "off_topic" | "instruction_attempt";
+        OmissionType: "insult" | "personal_attack" | "off_topic" | "instruction_attempt";
         /**
          * PerspectiveSchema
          * @enum {string}
@@ -81,7 +81,10 @@ export interface components {
          * @description What the frontend sends.
          */
         ReviewRequestSchema: {
-            /** Venue Name */
+            /**
+             * Venue Name
+             * @default
+             */
             venue_name: string;
             /** @default other */
             category: components["schemas"]["VenueCategory"];
