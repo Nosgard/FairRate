@@ -689,3 +689,23 @@ def test_an_instruction_still_in_the_text_is_a_failed_removal_not_a_lie() -> Non
     ]})
 
     assert echoed_omissions(request, result) == []
+
+
+def test_splits_a_german_field_at_its_own_conjunction() -> None:
+    """The splitter decides how many things a guest named, and the count
+    decides the stars. Reading German "und" as one item cost a review a
+    star: the same notes scored 4 with a comma and 3 with the word."""
+    from app.core.verification import split_items
+
+    assert split_items("Gute Pasta und freundlicher Empfang", Language.DE) == [
+        "Gute Pasta",
+        "freundlicher Empfang",
+    ]
+
+
+def test_every_language_has_its_own_rules() -> None:
+    """Adding a language to the enum without its noise words and splitter
+    would silently apply English ones to it."""
+    from app.core.verification import _RULES
+
+    assert set(_RULES) == set(Language)

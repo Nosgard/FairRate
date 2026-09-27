@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from app.core.models import (
     GeneratedReview,
@@ -484,6 +485,31 @@ _DE_NOISE = frozenset(
     }
 )
 
+# Fields are usually lists: "Delicious burgers, fresh ingredients, no
+# artificial flavours, plastic-free spoons" is four things, not one. The
+# conjunction only splits when no comma follows it, so it joins the last two
+# rather than cutting a clause in half.
+_EN_ITEMS = re.compile(r"[,;]|\band\b(?=[^,;]*$)", re.I)
+_DE_ITEMS = re.compile(r"[,;]|\bund\b(?=[^,;]*$)", re.I)
+
+
+@dataclass(frozen=True)
+class LanguageRules:
+    """What the text checks need to know about one language."""
+
+    noise: frozenset[str]
+    items: re.Pattern[str]
+
+
+# One entry per language. Adding a language to the enum without its own
+# entry used to mean silently applying English rules to it; now the table is
+# the single place to extend, and a test holds it complete.
+_RULES: dict[Language, LanguageRules] = {
+    Language.EN: LanguageRules(noise=_EN_NOISE, items=_EN_ITEMS),
+    Language.DE: LanguageRules(noise=_DE_NOISE, items=_DE_ITEMS),
+}
+
+
 _WORD = re.compile(r"\w+", re.UNICODE)
 
 # An entry goes only when nearly everything it claims to have removed is
@@ -506,7 +532,7 @@ def _content_tokens(text: str, language: Language) -> set[str]:
     overlap, which keeps an entry rather than discarding it, so the gaps
     all fail in the safe direction.
     """
-    noise = _DE_NOISE if language is Language.DE else _EN_NOISE
+    noise = _RULES[language].noise
     tokens = set()
     for match in _WORD.finditer(text.lower()):
         word = match.group()
@@ -575,7 +601,7 @@ def unearned_omissions(
         f"{result.review} {result.headline or ''}", request.language
     )
     for field in (request.liked, request.disliked, request.suggestions):
-        for item in split_items(field):
+        for item in split_items(field, request.language):
             tokens = _content_tokens(item, request.language)
             if not tokens:
                 continue
@@ -621,16 +647,14 @@ def strip_removed_clauses(
     return text, offending
 
 
-# Fields are usually lists: "Delicious burgers, fresh ingredients, no
-# artificial flavours, plastic-free spoons" is four things, not one.
-_ITEM_SPLIT = re.compile(r"[,;]|\band\b(?=[^,;]*$)", re.I)
-
-
-def split_items(field: str) -> list[str]:
+def split_items(field: str, language: Language) -> list[str]:
     """The things a field names, split where the guest put the commas.
 
-    Public because the prompt builder sets such a field as a list.
+    Public because the prompt builder sets such a field as a list, and the
+    count decides the rating. The language is the one the review is asked
+    in, which is the best signal available for the notes it was typed with.
     """
-    return [part.strip() for part in _ITEM_SPLIT.split(field) if part.strip()]
+    pattern = _RULES[language].items
+    return [part.strip() for part in pattern.split(field) if part.strip()]
 
 
