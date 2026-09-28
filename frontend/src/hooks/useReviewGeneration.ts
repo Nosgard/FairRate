@@ -23,11 +23,15 @@ export function useReviewGeneration() {
     setState(await createReview(request));
   }, []);
 
-  const regenerate = useCallback(async () => {
+  /** `changed` carries whatever moved since the request was sent. Replaying
+   *  it verbatim asked again in the language the user had just left. */
+  const regenerate = useCallback(async (changed?: Partial<ReviewRequest>) => {
     const request = lastRequest.current;
     if (!request) return;
+    const next = { ...request, ...changed };
+    lastRequest.current = next;
     setState({ status: "loading" });
-    setState(await createReview(request));
+    setState(await createReview(next));
   }, []);
 
   const reset = useCallback(() => {

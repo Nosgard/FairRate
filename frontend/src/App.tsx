@@ -118,10 +118,13 @@ export default function App() {
   /** Regeneration is a new request for the same input, so it collapses the
    *  form the way a submission does. Without this an earlier "Edit inputs"
    *  would hold the form open across the whole request. Wrapping it here
-   *  keeps useReviewGeneration unaware of the form entirely. */
+   *  keeps useReviewGeneration unaware of the form entirely.
+   *
+   *  The language is passed again rather than replayed: its control stays
+   *  reachable while the result is on screen, so it can have changed. */
   function handleRegenerate() {
     setIsEditing(false);
-    regenerate();
+    regenerate({ language: reviewLanguage(language) });
   }
 
   // The hero is a band, not a fill: it carries the name and the language
