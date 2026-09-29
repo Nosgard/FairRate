@@ -15,6 +15,7 @@ from app.core.verification import (
     strip_relevance_commentary,
     strip_removed_clauses,
     unearned_omissions,
+    wrong_language,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,10 +33,16 @@ class ReviewService:
         self._generator = generator
 
     async def create_review(self, request: ReviewInput) -> GeneratedReview:
-        # The last attempt free of envelope syntax, already mended. One that
+        # The best attempt free of envelope syntax, already mended. One that
         # only leaked a name is still servable, so it is kept even when a
         # later attempt comes back with a brace in it.
+        #
+        # Best, not last: attempts used to overwrite one another, so the
+        # third was served even where the first was better. German makes
+        # that the normal case — the name guard flags ordinary nouns, so
+        # no attempt comes back clean.
         sound: GeneratedReview | None = None
+        rank = (0, 0)  # only read once sound is set
         artefact = ""
 
         for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -46,12 +53,19 @@ class ReviewService:
                                "(attempt %d)", artefact, attempt)
                 continue
 
-            sound = self._repair(request, result)
-            faults = self._faults(request, result, sound)
+            mended = self._repair(request, result)
+            faults = self._faults(request, result, mended)
             if not faults:
-                return sound
+                return mended
             for fault in faults:
                 logger.warning("%s (attempt %d)", fault, attempt)
+
+            # The language outranks the count: the guest cannot use a review
+            # in the wrong one, and a flagged name is usually a false positive.
+            candidate = (1 if wrong_language(request, mended) else 0,
+                         len(faults))
+            if sound is None or candidate < rank:
+                sound, rank = mended, candidate
 
         # Envelope syntax in every attempt means the cause really is in the
         # input, which is what makes refusing honest. On one sample it would
@@ -67,9 +81,10 @@ class ReviewService:
                 "The model wrote response syntax into the review text"
             )
 
-        # A leaked name, or an instruction the strippers could not cut, still
-        # ships once every attempt has been spent: a flawed review beats no
-        # review, and the warnings above made the failure visible.
+        # A leaked name, an instruction the strippers could not cut, or the
+        # wrong language in all three attempts still ships once every
+        # attempt has been spent: a flawed review beats no review, and the
+        # warnings above made the failure visible.
         return sound
 
     @staticmethod
@@ -89,6 +104,10 @@ class ReviewService:
         echo = instruction_echo(request, mended)
         if echo:
             faults.append(f"Review still echoes a removed instruction {echo!r}")
+        written_in = wrong_language(request, mended)
+        if written_in:
+            faults.append(f"Review is written in {written_in.value}, "
+                          f"not {request.language.value}")
         return faults
 
     @classmethod
