@@ -729,3 +729,84 @@ def test_every_language_has_its_own_rules() -> None:
     from app.core.verification import _RULES
 
     assert set(_RULES) == set(Language)
+
+
+@pytest.mark.parametrize(
+    ("language", "text"),
+    [
+        (
+            Language.EN,
+            "The starter took forty minutes to arrive, and the pasta was "
+            "homemade. The welcome was very friendly.",
+        ),
+        (
+            Language.DE,
+            "Die Vorspeise kam erst nach vierzig Minuten, und die Pasta war "
+            "hausgemacht. Der Empfang war sehr freundlich.",
+        ),
+        (
+            Language.FR,
+            "L'entrée a mis quarante minutes à arriver, et les pâtes étaient "
+            "maison. L'accueil était très chaleureux.",
+        ),
+        (
+            Language.ES,
+            "El entrante tardó cuarenta minutos en llegar, y la pasta era "
+            "casera. La acogida fue muy cordial.",
+        ),
+    ],
+    ids=["en", "de", "fr", "es"],
+)
+def test_reads_which_language_a_passage_is_written_in(
+    language: Language, text: str
+) -> None:
+    """One passage per language, each long enough to be judged. French and
+    Spanish matter most here: they share eleven noise words, so they are the
+    pair the detector is likeliest to confuse."""
+    from app.core.verification import detected_language
+
+    assert detected_language(text) is language
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["Das Restaurant war laut.", "Le bruit était excessif.", "ok"],
+    ids=["de", "fr", "bare"],
+)
+def test_says_nothing_about_a_passage_too_short_to_judge(text: str) -> None:
+    """Too little text must return None rather than a best guess. A wrong
+    answer here makes the service re-roll a perfectly good review, and
+    re-rolling can lose an item the first attempt had."""
+    from app.core.verification import detected_language
+
+    assert detected_language(text) is None
+
+
+def test_every_language_has_a_name_for_the_prompt() -> None:
+    """The settings line asks by name and names the pronoun the review is to
+    use. Checked as a mapping rather than a list, because a swapped pair
+    would ask the model for the wrong language, and a list in enum order
+    would not notice."""
+    from app.core.verification import language_rules
+
+    named = {
+        lang.value: (language_rules(lang).name, language_rules(lang).first_person)
+        for lang in Language
+    }
+    assert named == {
+        "en": ("English", "I"),
+        "de": ("German", "ich"),
+        "fr": ("French", "je"),
+        "es": ("Spanish", "yo"),
+    }
+
+
+def test_every_language_brings_its_own_possessives() -> None:
+    """`impersonal` keeps the guest's own first person and bans the rest, so
+    it has to name both in the guest's language. An empty tuple would make
+    the ban name nothing."""
+    from app.core.verification import language_rules
+
+    for language in Language:
+        rules = language_rules(language)
+        assert rules.possessive and rules.possessive_plural, language

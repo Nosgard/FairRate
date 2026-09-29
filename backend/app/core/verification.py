@@ -692,8 +692,18 @@ _ES_ITEMS = re.compile(r"[,;]|\b[ye]\b(?=[^,;]*$)", re.I)
 
 @dataclass(frozen=True)
 class LanguageRules:
-    """What the text checks need to know about one language."""
+    """What the pipeline needs to know about one language."""
 
+    # What the prompt calls it, so the settings line can ask by name.
+    name: str
+    # The settings line names the pronoun the review is to use. Naming the
+    # English "I" for a German review left the person out of five reviews in
+    # six, and twice put a literal "I" at the head of a German sentence.
+    first_person: str
+    first_person_plural: str
+    # Every form, because the guest inflects: "mein", "meinem", "meiner".
+    possessive: tuple[str, ...]
+    possessive_plural: tuple[str, ...]
     noise: frozenset[str]
     items: re.Pattern[str]
 
@@ -702,14 +712,92 @@ class LanguageRules:
 # entry used to mean silently applying English rules to it; now the table is
 # the single place to extend, and a test holds it complete.
 _RULES: dict[Language, LanguageRules] = {
-    Language.EN: LanguageRules(noise=_EN_NOISE, items=_EN_ITEMS),
-    Language.DE: LanguageRules(noise=_DE_NOISE, items=_DE_ITEMS),
-    Language.FR: LanguageRules(noise=_FR_NOISE, items=_FR_ITEMS),
-    Language.ES: LanguageRules(noise=_ES_NOISE, items=_ES_ITEMS),
+    Language.EN: LanguageRules(
+        name="English", first_person="I", first_person_plural="we",
+        possessive=("my", "mine"), possessive_plural=("our", "ours"),
+        noise=_EN_NOISE, items=_EN_ITEMS,
+    ),
+    Language.DE: LanguageRules(
+        name="German", first_person="ich", first_person_plural="wir",
+        possessive=("mein", "meine", "meinem", "meinen", "meiner", "meines"),
+        possessive_plural=(
+            "unser", "unsere", "unserem", "unseren", "unserer", "unseres",
+        ),
+        noise=_DE_NOISE, items=_DE_ITEMS,
+    ),
+    Language.FR: LanguageRules(
+        name="French", first_person="je", first_person_plural="nous",
+        possessive=("mon", "ma", "mes"), possessive_plural=("notre", "nos"),
+        noise=_FR_NOISE, items=_FR_ITEMS,
+    ),
+    Language.ES: LanguageRules(
+        name="Spanish", first_person="yo", first_person_plural="nosotros",
+        possessive=("mi", "mis"),
+        possessive_plural=("nuestro", "nuestra", "nuestros", "nuestras"),
+        noise=_ES_NOISE, items=_ES_ITEMS,
+    ),
 }
 
 
+def language_rules(language: Language) -> LanguageRules:
+    """Everything the pipeline knows about one language."""
+    return _RULES[language]
+
+
 _WORD = re.compile(r"\w+", re.UNICODE)
+
+# Below this many words there is too little text to tell. Across 119
+# measured reviews, everything this left undecided was a single clause
+# ("Das Restaurant war laut."), and every passage it did judge was right.
+_MIN_WORDS_TO_JUDGE = 8
+
+# How far ahead the winner must be. French and Spanish share eleven noise
+# words, so a lead of one proves nothing. Two separated all 36 French from
+# all 36 Spanish reviews in the corpus, where the smallest real lead was four.
+_MIN_LEAD = 2
+
+
+def detected_language(text: str) -> Language | None:
+    """Which of the known languages a passage is written in, or None.
+
+    Scored on the noise words already in the table — function words like
+    "the", "der", "les", which mean nothing on their own but belong to one
+    language. A new language needs a row there and no code here.
+
+    None means undecided, not English. The caller re-rolls on a wrong
+    language, and re-rolling can lose an item the first attempt had, so
+    the detector must not guess.
+    """
+    words = [word.lower() for word in _WORD.findall(text)]
+    if len(words) < _MIN_WORDS_TO_JUDGE:
+        return None
+
+    scores = {
+        language: sum(word in rules.noise for word in words)
+        for language, rules in _RULES.items()
+    }
+    ranked = sorted(scores, key=lambda language: scores[language], reverse=True)
+    best, runner_up = ranked[0], ranked[1]
+    if scores[best] - scores[runner_up] < _MIN_LEAD:
+        return None
+    return best
+
+
+def wrong_language(
+    request: ReviewInput, result: GeneratedReview
+) -> Language | None:
+    """The language the review came back in, when that is not the one asked
+    for. None when it matches, and also when the review is too short to
+    judge — an unsure answer must not cost a re-roll.
+
+    The review only. A headline runs to seven words at most, under the
+    detector's floor — it could judge none of 191 measured ones.
+    """
+    written_in = detected_language(result.review)
+    if written_in is None or written_in is request.language:
+        return None
+    return written_in
+
 
 # An entry goes only when nearly everything it claims to have removed is
 # still there. A note echoing the review scores 0.8; a note describing the
