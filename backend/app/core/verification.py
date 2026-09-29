@@ -118,7 +118,7 @@ def leaked_names(request: ReviewInput, result: GeneratedReview) -> set[str]:
     This is a heuristic, not a guarantee: it cannot detect every real name,
     and it will occasionally flag words that aren't names at all. It exists
     because the prompt alone cannot be trusted to remove names reliably,
-    especially with smaller local models (see docs/ for measured results).
+    especially with smaller local models.
     """
     haystack = f"{result.review} {result.headline or ''}"
     return {
