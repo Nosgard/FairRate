@@ -181,7 +181,7 @@ def test_a_listed_field_stays_inside_the_fence() -> None:
 
     head, _, notes = message.partition("<guest_notes>")
     assert "- Language: fr" in notes
-    assert "Language: en" in head
+    assert "Language: English" in head
 
 
 def test_leaves_a_sentence_whole_however_many_ands_it_holds() -> None:

@@ -12,7 +12,7 @@ from app.core.models import (
     Perspective,
     ReviewInput,
 )
-from app.core.verification import split_items
+from app.core.verification import language_rules, split_items
 
 # Resolved relative to this file, not the working directory — the app is
 # started from different locations (test, uvicorn, CI), and a relative
@@ -28,26 +28,36 @@ LIST_THRESHOLD = 2
 # with it.
 _LISTED = re.compile(r"[,;]")
 
-# The perspective line is written for the request in front of it rather than
-# stated as a rule. Seven versions of the rule changed nothing. Listing "I",
-# "my", "me" as vocabulary did lift the person and cost the name guard every
-# time: a first-person telling carries the guest's names with it.
-_FIRST_PERSON = re.compile(r"\bI\b|(?i:\b(?:my|mine|me|we|our|ours|us)\b)")
+
+def _word(text: str) -> re.Pattern[str]:
+    """Match `text` as a whole word.
+
+    A one-letter pronoun is matched case-sensitively, because English "i" is
+    not the word "I". Longer ones are matched either way, so German "Ich" at
+    the head of a sentence counts too.
+    """
+    flags = re.NOFLAG if len(text) == 1 else re.I
+    return re.compile(rf"\b{re.escape(text)}\b", flags)
+
+
+def _has_first_person(text: str, language: Language) -> bool:
+    """Whether the guest already wrote in the first person themselves."""
+    rules = language_rules(language)
+    words = (rules.first_person, rules.first_person_plural,
+             *rules.possessive, *rules.possessive_plural)
+    return any(_word(word).search(text) for word in words)
+
 
 # A possessive and what it owns, cut off before the next verb or preposition.
+# English only: the stop list is English grammar, and a guessed one for another
+# language would name the wrong phrase rather than none. Elsewhere the guest's
+# own first person is carried by the pronouns `_own_words` looks for.
 _OWNS = (
     r"was|were|is|are|had|has|got|received|loved|liked|came|arrived|felt|"
     r"seemed|looked|stayed|took|back|on|in|at|for|from|to|with"
 )
 _POSSESSIVE = re.compile(
     rf"\b(my|our)\s+((?:(?!(?:{_OWNS})\b)\w+\s*){{1,3}})", re.I
-)
-
-# "I" is matched case-sensitively, because lowercase "i" is a different
-# word. "we" is not.
-_BARE_PRONOUNS = (
-    ("I", re.compile(r"\bI\b")),
-    ("we", re.compile(r"\bwe\b", re.I)),
 )
 
 
@@ -66,37 +76,54 @@ def _own_words(request: ReviewInput) -> list[str]:
     Naming them is what lets `impersonal` keep exactly these and no more.
     """
     text = _notes(request)
+    rules = language_rules(request.language)
     # fromkeys keeps the order the guest wrote them in and drops repeats.
     found = list(dict.fromkeys(
         f"{m.group(1)} {m.group(2).strip()}".lower()
         for m in _POSSESSIVE.finditer(text)
     ))
-    return found + [
-        word for word, pattern in _BARE_PRONOUNS if pattern.search(text)
-    ]
+    spoken = (rules.first_person, rules.first_person_plural)
+    return found + [word for word in spoken if _word(word).search(text)]
 
 
 def _no_speaker_line(request: ReviewInput) -> str:
     """The impersonal setting: the guest's own first person and no more."""
+    rules = language_rules(request.language)
     own = _own_words(request)
     if not own:
-        return 'no-speaker — no "I", "we", "my" or "our" anywhere'
+        named = (rules.first_person, rules.first_person_plural, rules.possessive[0])
+        banned = ", ".join(f'"{word}"' for word in named)
+        return f'no-speaker — no {banned} or "{rules.possessive_plural[0]}" anywhere'
     kept = ", ".join(f'"{phrase}"' for phrase in own)
     return (f"no-speaker — keep the guest's own {kept} exactly as "
             f"written; add no other first person")
 
 
 def _speaking_line(request: ReviewInput) -> str:
-    """The `i` or `we` setting, and whether the notes already say it."""
-    word = "I" if request.perspective is Perspective.FIRST_PERSON else "we"
+    """The `i` or `we` setting, and whether the notes already say it.
+
+    The word is the one the review is written in. Naming the English "I"
+    for a German review left the person out of five reviews in six, and
+    twice put a literal "I" at the head of a German sentence.
+    """
+    rules = language_rules(request.language)
+    is_singular = request.perspective is Perspective.FIRST_PERSON
+    word = rules.first_person if is_singular else rules.first_person_plural
     line = f'{request.perspective.value} — the review says "{word}"'
-    if _FIRST_PERSON.search(_notes(request)):
+    if _has_first_person(_notes(request), request.language):
         return line
     return line + "; the notes do not, so that is yours to add"
 
 
 def _perspective_line(request: ReviewInput) -> str:
-    """The perspective setting, written for this request."""
+    """The perspective setting, written for this request.
+
+    Written for the notes in front of it rather than stated as a rule: seven
+    versions of the rule changed nothing. Listing "I", "my", "me" as
+    vocabulary did lift the person and cost the name guard every time — a
+    first-person telling carries the guest's names with it — so the line
+    names one word, and a test holds it to one.
+    """
     if request.perspective is Perspective.IMPERSONAL:
         return _no_speaker_line(request)
     return _speaking_line(request)
@@ -111,7 +138,10 @@ def _settings(request: ReviewInput) -> list[str]:
         lines.append(f"Venue: {request.venue_name}")
     lines += [
         f"Category: {request.category.value}",
-        f"Language: {request.language.value}",
+        # Named, not coded: the model has to resolve "de" before it can
+        # follow it, in a prompt that is English throughout. Not a
+        # guarantee — the review's language is checked after generation.
+        f"Language: {language_rules(request.language).name}",
         f"Tone: {request.tone.value}",
         f"Perspective: {_perspective_line(request)}",
     ]
