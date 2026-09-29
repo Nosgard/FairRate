@@ -385,3 +385,22 @@ def test_five_stars_need_an_empty_complaint_field() -> None:
 
     assert stars_for(ReviewInput(venue_name="X", liked="a, b, c"), W.NONE) == 5
     assert stars_for(ReviewInput(venue_name="X", disliked="x, y"), W.HARMFUL) == 1
+
+
+def test_reads_the_notes_in_their_own_language_not_the_requested_one() -> None:
+    """Switching the language with the form already filled used to split
+    English notes by German rules. "and" is not "und", so the two things the
+    guest named counted as one: 4 stars in English, 3 in German, from
+    identical notes."""
+    from app.core.models import ComplaintWeight, Language, ReviewInput
+    from app.core.prompt import stars_for
+
+    liked = "Homemade pasta and a very friendly welcome"
+    disliked = "Forty minutes waiting for the starter"
+    asked_in_english = ReviewInput(liked=liked, disliked=disliked, language=Language.EN)
+    asked_in_german = ReviewInput(liked=liked, disliked=disliked, language=Language.DE)
+
+    stars = stars_for(asked_in_german, ComplaintWeight.MINOR)
+
+    assert stars == stars_for(asked_in_english, ComplaintWeight.MINOR)
+    assert stars == 4

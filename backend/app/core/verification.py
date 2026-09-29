@@ -262,7 +262,7 @@ def sentences_about_removals(
     """
     written = _content_tokens(
         f"{request.liked} {request.disliked} {request.suggestions}",
-        request.language,
+        notes_language(request),
     )
     removed: set[str] = set()
     for entry in result.omissions:
@@ -818,6 +818,12 @@ def _content_tokens(text: str, language: Language) -> set[str]:
     "waiving" stay distinct. Every word this fails to match lowers the
     overlap, which keeps an entry rather than discarding it, so the gaps
     all fail in the safe direction.
+
+    Which language to pass: the guest's own text is read with
+    `notes_language`, the model's review with `request.language`. An
+    `Omission.note` follows neither — it comes back in English whatever was
+    asked for, which is why the checks matching it against the review do
+    nothing outside English.
     """
     noise = _RULES[language].noise
     tokens = set()
@@ -887,9 +893,10 @@ def unearned_omissions(
     haystack = _content_tokens(
         f"{result.review} {result.headline or ''}", request.language
     )
+    written_in = notes_language(request)
     for field in (request.liked, request.disliked, request.suggestions):
-        for item in split_items(field, request.language):
-            tokens = _content_tokens(item, request.language)
+        for item in split_items(field, written_in):
+            tokens = _content_tokens(item, written_in)
             if not tokens:
                 continue
             if len(tokens & haystack) / len(tokens) < _KEPT_THRESHOLD:
@@ -938,10 +945,26 @@ def split_items(field: str, language: Language) -> list[str]:
     """The things a field names, split where the guest put the commas.
 
     Public because the prompt builder sets such a field as a list, and the
-    count decides the rating. The language is the one the review is asked
-    in, which is the best signal available for the notes it was typed with.
+    count decides the rating. The language is the one the notes are written
+    in — callers get it from `notes_language`.
     """
     pattern = _RULES[language].items
     return [part.strip() for part in pattern.split(field) if part.strip()]
+
+
+def notes_language(request: ReviewInput) -> Language:
+    """The language the guest's notes are written in.
+
+    The splitter looks for the guest's own conjunction, which depends on
+    what they typed, not on what they asked for. The two differ when the
+    language is switched with the form already filled: the same English
+    notes then split into one item instead of two, and the review loses a
+    star.
+
+    Falls back to the requested language when the notes are too short to
+    judge.
+    """
+    written = f"{request.liked} {request.disliked} {request.suggestions}"
+    return detected_language(written) or request.language
 
 

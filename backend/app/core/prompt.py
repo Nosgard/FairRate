@@ -12,7 +12,7 @@ from app.core.models import (
     Perspective,
     ReviewInput,
 )
-from app.core.verification import language_rules, split_items
+from app.core.verification import language_rules, notes_language, split_items
 
 # Resolved relative to this file, not the working directory — the app is
 # started from different locations (test, uvicorn, CI), and a relative
@@ -152,9 +152,10 @@ def _settings(request: ReviewInput) -> list[str]:
 
 def _counts(request: ReviewInput) -> tuple[int, int]:
     """How many things the guest liked, and how many they held against it."""
+    written_in = notes_language(request)
     return (
-        len(split_items(request.liked, request.language)),
-        len(split_items(request.disliked, request.language)),
+        len(split_items(request.liked, written_in)),
+        len(split_items(request.disliked, written_in)),
     )
 
 
@@ -245,8 +246,9 @@ class PromptBuilder:
         pairs = [("Liked", request.liked), ("Disliked", request.disliked)]
         self._rng.shuffle(pairs)
         pairs.append(("Suggestions", request.suggestions))
+        written_in = notes_language(request)
         return [
-            self._render_field(label, field, request.language)
+            self._render_field(label, field, written_in)
             for label, field in pairs
             if field
         ]
